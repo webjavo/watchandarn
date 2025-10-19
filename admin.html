@@ -1,0 +1,110 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>Watch and Earn — Admin</title><style>
+:root{
+  --bg:#e8f2ff;
+  --card:#ffffff;
+  --accent:#1e6fdb;
+  --accent-2:#0b57b5;
+  --muted:#48607f;
+  --success:#16a34a;
+  --danger:#ef4444;
+  --modal-shadow: 0 12px 40px rgba(11,87,181,0.12);
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter, system-ui, -apple-system, 'Segoe UI', Roboto, Arial;background:var(--bg);color:#14303b}
+.container{max-width:420px;margin:0 auto;padding:14px}
+.header{display:flex;align-items:center;gap:8px;padding:8px 0}
+.card{background:var(--card);border-radius:12px;padding:12px;box-shadow:0 30px 80px rgba(2,6,23,0.08);margin-top:12px}
+.btn{display:inline-block;padding:10px 14px;border-radius:10px;background:linear-gradient(90deg,var(--accent),var(--accent-2));color:white;border:none;cursor:pointer;font-weight:800}
+.btn-ghost{background:transparent;border:1px solid rgba(20,48,59,0.06);color:var(--accent-2);padding:8px 12px;border-radius:10px;cursor:pointer}
+.admin-table{width:100%;border-collapse:collapse;margin-top:12px}
+.admin-table th, .admin-table td{padding:8px;text-align:left;border-bottom:1px solid rgba(0,0,0,0.04);font-size:13px}
+.controls-row{display:flex;gap:8px;align-items:center}
+.small-input{padding:8px;border-radius:8px;border:1px solid rgba(11,87,181,0.06)}
+.input{width:100%;padding:10px;border-radius:10px;border:1px solid rgba(11,87,181,0.08);margin-top:8px;font-size:14px}
+</style></head><body>
+<div class="container">
+  <h2 style="color:var(--accent-2)">Admin Panel</h2>
+  <div id="loginPanel" class="card">
+    <h3>Login</h3>
+    <input class="input" id="ad_user" placeholder="Admin username"/>
+    <input class="input" id="ad_pass" placeholder="Password"/>
+    <input class="input" id="ad_pet" placeholder="Pet"/>
+    <div style="display:flex;gap:8px;margin-top:10px"><button class="btn" id="ad_login">Login</button><button class="btn-ghost" id="ad_cancel">Cancel</button></div>
+  </div>
+
+  <div id="adminArea" style="display:none">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div><strong>Videos</strong></div>
+      <div><button class="btn" id="logoutAdmin">Logout</button></div>
+    </div>
+    <div style="margin-top:10px" class="card">
+      <div class="controls-row">
+        <input class="small-input" id="vid_url" placeholder="YouTube video link (https://...)"/>
+        <input class="small-input" id="vid_seconds" placeholder="Seconds"/>
+        <input class="small-input" id="vid_coins" placeholder="Coins"/>
+        <button class="btn" id="vid_add">Add</button>
+      </div>
+      <table class="admin-table" id="vid_table"><thead><tr><th>Video</th><th>Seconds</th><th>Coins</th><th>Action</th></tr></thead><tbody></tbody></table>
+    </div>
+
+    <div class="card" style="margin-top:12px">
+      <h3>Users</h3>
+      <table class="admin-table" id="usersTable"><thead><tr><th>Email</th><th>Username</th><th>Balance</th><th>Status</th><th>Action</th></tr></thead><tbody></tbody></table>
+    </div>
+  </div>
+</div>
+
+<script>
+function qs(id){return document.getElementById(id)}
+const ADMIN_USER='vmanstudios', ADMIN_PASS='242777Aa#', ADMIN_PET='Dragon';
+qs('ad_login').addEventListener('click', function(){
+  const u=qs('ad_user').value.trim(), p=qs('ad_pass').value, pet=qs('ad_pet').value.trim();
+  if(u===ADMIN_USER && p===ADMIN_PASS && pet===ADMIN_PET){ qs('loginPanel').style.display='none'; qs('adminArea').style.display='block'; loadVideos(); loadUsers() } else alertProfessional('Admin credentials wrong')
+});
+qs('logoutAdmin').addEventListener('click', function(){ qs('adminArea').style.display='none'; qs('loginPanel').style.display='block' })
+
+qs('vid_add').addEventListener('click', function(){
+  const url=qs('vid_url').value.trim(), s=Number(qs('vid_seconds').value||0), c=Number(qs('vid_coins').value||0);
+  if(!url||s<=0||c<0){ alertProfessional('Enter valid values'); return; }
+  const arr=JSON.parse(localStorage.getItem('wa_videos')||'[]');
+  arr.push({url,seconds:s,coins:c});
+  localStorage.setItem('wa_videos', JSON.stringify(arr));
+  qs('vid_url').value=''; qs('vid_seconds').value=''; qs('vid_coins').value='';
+  loadVideos(); alertProfessional('Video added');
+});
+function loadVideos(){
+  const tbody = qs('vid_table').querySelector('tbody'); tbody.innerHTML='';
+  const arr=JSON.parse(localStorage.getItem('wa_videos')||'[]');
+  arr.forEach(function(v,i){
+    const tr=document.createElement('tr');
+    tr.innerHTML = '<td style="max-width:150px;overflow:hidden;text-overflow:ellipsis">'+v.url+'</td><td>'+v.seconds+'</td><td>'+v.coins+'</td><td><button class="btn-ghost" data-i="'+i+'" onclick="removeVid(this)">Remove</button></td>';
+    tbody.appendChild(tr);
+  })
+}
+function removeVid(el){ const i=Number(el.getAttribute('data-i')); const arr=JSON.parse(localStorage.getItem('wa_videos')||'[]'); arr.splice(i,1); localStorage.setItem('wa_videos', JSON.stringify(arr)); loadVideos(); }
+
+function loadUsers(){
+  const users = JSON.parse(localStorage.getItem('wa_users')||'{}');
+  const tbody = qs('usersTable').querySelector('tbody'); tbody.innerHTML='';
+  Object.values(users).forEach(function(u){
+    const tr=document.createElement('tr');
+    tr.innerHTML = '<td>'+u.email+'</td><td>'+u.username+'</td><td>₦'+(u.balance||0).toFixed(0)+'</td><td>'+(u.disabled? 'Disabled' : 'Active')+'</td><td><button class="btn-ghost" onclick=\'toggleDisable("'+u.email+'")\'>Toggle</button></td>';
+    tbody.appendChild(tr);
+  })
+}
+function toggleDisable(email){
+  const users = JSON.parse(localStorage.getItem('wa_users')||'{}');
+  if(!users[email]) return;
+  users[email].disabled = !users[email].disabled;
+  localStorage.setItem('wa_users', JSON.stringify(users));
+  loadUsers();
+}
+
+function alertProfessional(msg){
+  const el=document.createElement('div'); el.style.position='fixed'; el.style.left='50%'; el.style.top='18%'; el.style.transform='translateX(-50%)'; el.style.zIndex=9999;
+  el.style.background='linear-gradient(90deg,#fff7f9,#fff)'; el.style.padding='12px 18px'; el.style.borderRadius='10px'; el.style.boxShadow='0 10px 30px rgba(0,0,0,0.08)'; el.innerText=msg;
+  document.body.appendChild(el); setTimeout(function(){el.remove()},2200);
+}
+</script>
+</body>
+</html>

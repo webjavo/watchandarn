@@ -1,0 +1,429 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Watch and Earn — Dashboard</title>
+<style>
+:root{
+  --bg:#e8f2ff;
+  --card:#ffffff;
+  --accent:#1e6fdb;
+  --accent-2:#0b57b5;
+  --muted:#48607f;
+  --success:#16a34a;
+  --danger:#ef4444;
+  --modal-shadow: 0 12px 40px rgba(11,87,181,0.12);
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter, system-ui, -apple-system, 'Segoe UI', Roboto, Arial;background:var(--bg);color:#14303b}
+.container{max-width:420px;margin:0 auto;padding:14px}
+.header{display:flex;align-items:center;gap:8px;padding:8px 0}
+.profile-circle{width:44px;height:44px;border-radius:50%;overflow:hidden;border:2px solid rgba(0,0,0,0.06);flex:0 0 44px}
+.profile-circle img{width:100%;height:100%;object-fit:cover;display:block}
+.title-center{flex:1;text-align:center;font-weight:800;color:var(--accent-2)}
+.menu-btn{width:44px;height:44px;border-radius:10px;background:var(--card);display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 6px 18px rgba(16,78,160,0.06)}
+.hamb{width:20px;height:14px;display:flex;flex-direction:column;justify-content:space-between}
+.hamb span{display:block;height:2px;background:var(--accent-2);border-radius:2px}
+.card{background:var(--card);border-radius:12px;padding:12px;box-shadow:0 30px 80px rgba(2,6,23,0.08);margin-top:12px}
+.btn{display:inline-block;padding:10px 14px;border-radius:10px;background:linear-gradient(90deg,var(--accent),var(--accent-2));color:white;border:none;cursor:pointer;font-weight:800}
+.btn-ghost{background:transparent;border:1px solid rgba(20,48,59,0.06);color:var(--accent-2);padding:8px 12px;border-radius:10px;cursor:pointer}
+.small{font-size:13px;color:var(--muted)}
+.counter{font-weight:900;color:var(--accent-2);font-size:18px}
+.row{display:flex;align-items:center;gap:8px}
+.center{display:flex;align-items:center;justify-content:center}
+.footer-note{font-size:12px;color:var(--muted);text-align:center;margin-top:18px;padding-bottom:30px}
+.modal-backdrop{display:none;position:fixed;inset:0;background:rgba(2,6,23,0.45);align-items:center;justify-content:center;z-index:2000}
+.modal{width:92%;max-width:420px;background:linear-gradient(180deg,#fff,#fbfdff);border-radius:12px;padding:16px;box-shadow:var(--modal-shadow);border:1px solid rgba(11,87,181,0.06)}
+.modal h3{margin:0 0 8px;font-size:18px;color:var(--accent-2)}
+.modal .muted{color:var(--muted);font-size:14px;margin-top:8px}
+.input{width:100%;padding:10px;border-radius:10px;border:1px solid rgba(11,87,181,0.08);margin-top:8px;font-size:14px}
+.row-g{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.video-screen{background:#000;border-radius:10px;height:260px;overflow:hidden;display:flex;align-items:center;justify-content:center;color:#fff}
+.controls{display:flex;align-items:center;justify-content:space-between;margin-top:12px}
+.bottom-actions{display:flex;gap:8px;margin-top:14px}
+.big-box{flex:1;padding:12px;border-radius:12px;background:linear-gradient(90deg,#fff,#f4fbff);border:1px solid rgba(11,87,181,0.06);text-align:center;font-weight:800;color:var(--accent-2)}
+.view-box{width:90px;padding:12px;border-radius:12px;background:linear-gradient(90deg,#ffefef,#fff);border:1px solid rgba(0,0,0,0.04);text-align:center;font-weight:800;color:#ff5b7a;box-shadow:0 8px 28px rgba(255,91,122,0.06)}
+.hint{font-size:13px;color:var(--muted)}
+.badge{background:rgba(11,87,181,0.08);color:var(--accent-2);padding:6px 8px;border-radius:8px;font-weight:700}
+.linkish{color:var(--accent-2);text-decoration:underline;cursor:pointer}
+.header-right{display:flex;align-items:center;gap:8px}
+.ballance{font-weight:900;color:var(--accent-2)}
+.video-screen iframe{width:100%;height:100%;border:0}
+.skip-btn{display:block;margin:10px auto;padding:10px 18px;border-radius:12px;background:#fff;border:1px solid rgba(0,0,0,0.06);font-weight:800;cursor:pointer}
+.referral-code{background:linear-gradient(90deg,#fff,#f4fbff);padding:6px 8px;border-radius:8px;border:1px solid rgba(11,87,181,0.06);font-weight:800}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <div class="menu-btn" id="menuBtn"><div class="hamb"><span></span><span></span><span></span></div></div>
+    <div class="title-center">Watch Video</div>
+    <div class="header-right">
+      <div class="ballance">₦<span id="balAmt">0</span></div>
+      <div class="profile-circle"><img src="image.png" alt="profile"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="video-screen" id="videoScreen">
+      <div id="videoPoster" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#fff">No video available</div>
+    </div>
+
+    <div class="controls">
+      <div class="info">
+        <div><div class="small">Seconds of video</div><div class="counter" id="secondsLeft">00</div></div>
+        <div><div class="small">Coins to get</div><div class="counter" id="coinsToGet">00</div></div>
+      </div>
+      <div><button class="skip-btn" id="skipBtn">Skip Video</button></div>
+    </div>
+
+    <div class="bottom-actions">
+      <div class="big-box" id="promoteBtn">Promote video</div>
+      <div class="view-box">View</div>
+      <div class="big-box" id="othersBtn">Others</div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:14px">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div class="small">Referral</div>
+      <div class="referral-code" id="myRef">--</div>
+    </div>
+    <div style="margin-top:10px">
+      <input class="input" id="redeemCode" placeholder="Enter referral code to redeem"/>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button class="btn" id="redeemBtn">Send</button>
+        <button class="btn-ghost" id="shareRef">Share</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-note">All activity is saved locally on this device.</div>
+</div>
+
+<!-- Menu Modal (restored) -->
+<div class="modal-backdrop" id="menuModal">
+  <div class="modal">
+    <h3>Menu</h3>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-top:8px">
+      <button class="btn-ghost" id="referBtn">Refer a friend</button>
+      <button class="btn-ghost" id="consentBtn">Consent</button>
+      <button class="btn-ghost" id="privacyBtn">Privacy Policy</button>
+      <button class="btn-ghost" id="contactBtn">Contact us</button>
+      <button class="btn-ghost" id="logoutBtn">Logout</button>
+      <button class="btn-ghost" id="withdrawBtn">Withdraw</button>
+    </div>
+    <div style="text-align:right;margin-top:8px"><button class="btn-ghost" id="closeMenu">Close</button></div>
+  </div>
+</div>
+
+<!-- Refer Modal -->
+<div class="modal-backdrop" id="referModal">
+  <div class="modal">
+    <h3>Refer a friend</h3>
+    <div class="muted">Your referral code (share this): <span id="showRef">---</span></div>
+    <div style="margin-top:8px"><input class="input" id="inputRef" placeholder="Enter referral to redeem"/></div>
+    <div style="display:flex;gap:8px;margin-top:10px"><button class="btn" id="refSend">Send</button><button class="btn-ghost" id="refCancel">Cancel</button></div>
+  </div>
+</div>
+
+<!-- Consent Modal -->
+<div class="modal-backdrop" id="consentModal">
+  <div class="modal">
+    <h3>Consent</h3>
+    <div class="muted">Welcome to Watch and Earn. We store: <ol><li>Email address</li><li>Name</li><li>Channel link</li><li>Profile photo URL</li></ol></div>
+    <div style="display:flex;gap:8px;margin-top:12px"><button class="btn" id="agreeBtn">I agree</button><button class="btn-ghost" id="consentClose">Cancel</button></div>
+  </div>
+</div>
+
+<script>
+/*
+  Restored full dashboard structure with careful, incremental fixes:
+  - YouTube IFrame API used for play/pause/buffering detection
+  - countdown stops on pause/buffering/ended
+  - reward credited once per video
+  - referral redemption correctly gives ₦200
+  - preserves localStorage keys (wa_users, wa_current, wa_videos)
+  - menu modal/hamburger restored
+*/
+
+function qs(id){ return document.getElementById(id); }
+
+/* --------- Local data init (unchanged keys) --------- */
+const current = localStorage.getItem('wa_current');
+if(!current){ location.href='index.html'; }
+
+let users = JSON.parse(localStorage.getItem('wa_users') || '{}');
+let videos = JSON.parse(localStorage.getItem('wa_videos') || '[]');
+let user = users[current];
+
+if(!user){ localStorage.removeItem('wa_current'); location.href='index.html'; }
+
+/* header update */
+function updateHeaderBalance(){ qs('balAmt').innerText = (user.balance||0).toFixed(0); }
+updateHeaderBalance();
+
+/* Restore refCode if missing */
+if(!user.refCode){
+  user.refCode = (user.username||'U').substring(0,5).toUpperCase();
+  users[current] = user;
+  localStorage.setItem('wa_users', JSON.stringify(users));
+}
+
+/* show ref */
+qs('showRef').innerText = user.refCode;
+qs('myRef').innerText = user.refCode;
+
+/* --------- Modal & menu interactions (restored) --------- */
+qs('menuBtn').addEventListener('click', function(){ qs('menuModal').style.display = 'flex'; });
+qs('closeMenu').addEventListener('click', function(){ qs('menuModal').style.display = 'none'; });
+qs('privacyBtn').addEventListener('click', function(){ qs('menuModal').style.display='none'; setTimeout(()=>{ location.href='privacy.html' },900); });
+qs('contactBtn').addEventListener('click', function(){ window.open('https://wa.me/message/JFMLAM4TMEDXH1','_blank'); });
+qs('logoutBtn').addEventListener('click', function(){ localStorage.removeItem('wa_current'); location.href='index.html'; });
+qs('withdrawBtn').addEventListener('click', function(){ qs('menuModal').style.display='none'; setTimeout(()=>{ location.href='withdraw.html' },900); });
+
+qs('referBtn').addEventListener('click', function(){ qs('menuModal').style.display='none'; setTimeout(()=>{ qs('referModal').style.display='flex'; },100); });
+qs('refCancel').addEventListener('click', function(){ qs('referModal').style.display='none'; });
+
+qs('consentBtn').addEventListener('click', function(){ qs('menuModal').style.display='none'; setTimeout(()=>{ qs('consentModal').style.display='flex'; },100); });
+qs('consentClose').addEventListener('click', function(){ qs('consentModal').style.display='none'; });
+qs('agreeBtn').addEventListener('click', function(){ qs('consentModal').style.display='none'; alertProfessional('Consent recorded'); });
+
+/* referral redeem (₦100) */
+qs('redeemBtn').addEventListener('click', redeemReferral);
+qs('refSend').addEventListener('click', redeemReferral); // both buttons same behavior
+function redeemReferral(){
+  const code = (qs('redeemCode')? qs('redeemCode').value : qs('inputRef').value || '').trim().toUpperCase();
+  if(!code){ alertProfessional('Enter referral code'); return; }
+  const all = JSON.parse(localStorage.getItem('wa_users') || '{}');
+  const entries = Object.entries(all);
+  const target = entries.find(pair => (pair[1].refCode||'') === code);
+  if(!target){ alertProfessional('Invalid code'); return; }
+  const tEmail = target[0], tUser = target[1];
+  if(tEmail === current){ alertProfessional('You cannot use your own code'); return; }
+  const cur = all[current];
+  if(cur.redeemed && cur.redeemed.includes(code)){ alertProfessional('Code already redeemed'); return; }
+  // Credit ₦100 to both accounts (fix)
+  tUser.balance = (tUser.balance || 0) + 100;
+  cur.balance = (cur.balance || 0) + 100;
+  cur.redeemed = cur.redeemed || []; cur.redeemed.push(code);
+  all[current] = cur; all[tEmail] = tUser;
+  localStorage.setItem('wa_users', JSON.stringify(all));
+  user = cur; users = all;
+  updateHeaderBalance();
+  alertProfessional('Referral successful. ₦200 added to both accounts.');
+  qs('referModal').style.display='none';
+}
+
+/* share ref */
+qs('shareRef').addEventListener('click', function(){
+  const text = 'Join Watch & Earn! use my code ' + user.refCode;
+  window.open('https://wa.me/?text=' + encodeURIComponent(text), '_blank');
+});
+
+/* promote & others (original behavior) */
+qs('promoteBtn').addEventListener('click', function(){ window.open('https://wa.me/message/JFMLAM4TMEDXH1', '_blank'); });
+qs('othersBtn').addEventListener('click', function(){ alertProfessional('Coming soon'); });
+
+/* --------- YouTube / countdown / reward logic (uses IFrame API) --------- */
+/* Load YouTube IFrame API script dynamically to avoid issues if blocked earlier */
+(function loadYT(){
+  if(window.YT && YT.Player) return; // already loaded
+  const s = document.createElement('script');
+  s.src = "https://www.youtube.com/iframe_api";
+  s.async = true;
+  document.head.appendChild(s);
+})();
+
+let ytPlayer = null;
+let idx = 0;
+let countdown = 0;
+let countdownInterval = null;
+let playing = false;
+let rewarded = false;
+
+/* called by YT when api ready */
+function onYouTubeIframeAPIReady(){
+  // only initialize UI after API ready
+  loadCurrent();
+}
+
+/* helper: robust extract of YouTube id */
+function extractYouTubeId(url){
+  if(!url) return '';
+  try{
+    const u = new URL(url);
+    if(u.hostname.indexOf('youtu.be') > -1) return u.pathname.slice(1);
+    if(u.hostname.indexOf('youtube.com') > -1) return u.searchParams.get('v') || '';
+  }catch(e){
+    // fallback: try regex
+    const m = url.match(/(?:v=|\/)([0-9A-Za-z_-]{11})/);
+    return m ? m[1] : url;
+  }
+  return '';
+}
+
+/* Load the current video from localStorage wa_videos (preserve original behavior) */
+function loadCurrent(){
+  videos = JSON.parse(localStorage.getItem('wa_videos') || '[]');
+  if(!videos || videos.length === 0){
+    qs('videoScreen').innerHTML = '<div id="videoPoster" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#fff">No video available</div>';
+    qs('secondsLeft').innerText = '00';
+    qs('coinsToGet').innerText = '00';
+    clearYTPlayer();
+    return;
+  }
+
+  const v = videos[idx] || {};
+  const vidId = extractYouTubeId(v.url);
+  countdown = Number(v.seconds) || 10;
+  qs('secondsLeft').innerText = countdown;
+  qs('coinsToGet').innerText = Number(v.coins || 0);
+  rewarded = false;
+
+  // prepare player container
+  qs('videoScreen').innerHTML = '<div id="player"></div>';
+
+  // destroy old player if present to avoid duplicate events
+  if(ytPlayer && typeof ytPlayer.destroy === 'function'){ ytPlayer.destroy(); ytPlayer = null; }
+
+  // create new player
+  try{
+    ytPlayer = new YT.Player('player', {
+      height: '100%',
+      width: '100%',
+      videoId: vidId,
+      playerVars: {
+        autoplay: 1,
+        playsinline: 1,
+        rel: 0,
+        enablejsapi: 1,
+        modestbranding: 1
+      },
+      events: {
+        'onReady': function(event){
+          // ensure not muted; many platforms won't count a view on muted autoplay
+          try{ event.target.unMute(); }catch(e){}
+          // start playing explicitly (some browsers block autoplay)
+          try{ event.target.playVideo(); }catch(e){}
+        },
+        'onStateChange': onPlayerStateChange
+      }
+    });
+  }catch(err){
+    // fallback - if API fails, show poster and ensure counters not running
+    qs('videoScreen').innerHTML = '<div id="videoPoster" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#fff">No video available</div>';
+    console.error('YT Player create error', err);
+  }
+}
+
+/* YT state management - keep countdown tied to actual playing state */
+function onPlayerStateChange(event){
+  // states: -1 unstarted, 0 ended, 1 playing, 2 paused, 3 buffering, 5 video cued
+  const state = event.data;
+  if(state === YT.PlayerState.PLAYING){
+    playing = true;
+    startCountdown();
+  } else if(state === YT.PlayerState.PAUSED || state === YT.PlayerState.BUFFERING || state === YT.PlayerState.ENDED){
+    playing = false;
+    clearInterval(countdownInterval);
+  }
+
+  // If ended and not rewarded (rare because we use countdown), reward once
+  if(state === YT.PlayerState.ENDED && !rewarded){
+    rewardUser();
+    nextVideo();
+  }
+}
+
+/* start countdown but ensure no double intervals and pause when playing=false */
+function startCountdown(){
+  clearInterval(countdownInterval);
+  countdownInterval = setInterval(function(){
+    if(!playing) return; // only decrement when actual playing
+    countdown--;
+    qs('secondsLeft').innerText = countdown;
+    if(countdown <= 0){
+      clearInterval(countdownInterval);
+      if(!rewarded){
+        rewardUser();
+        nextVideo();
+      }
+    }
+  }, 1000);
+}
+
+/* awarding logic - ensures once per video */
+function rewardUser(){
+  const arr = JSON.parse(localStorage.getItem('wa_videos') || '[]');
+  const v = arr[idx] || {};
+  const coins = Number(v.coins || 0);
+  user.balance = (user.balance || 0) + coins;
+  users[current] = user;
+  localStorage.setItem('wa_users', JSON.stringify(users));
+  updateHeaderBalance();
+  rewarded = true;
+  alertProfessional('+' + coins + ' coins added');
+}
+
+/* advance without awarding duplicate (skip shouldn't reward) */
+function nextVideo(){
+  // stop player & interval safely
+  try{ if(ytPlayer && typeof ytPlayer.stopVideo === 'function') ytPlayer.stopVideo(); }catch(e){}
+  clearInterval(countdownInterval);
+  playing = false;
+  rewarded = false;
+  // advance index
+  videos = JSON.parse(localStorage.getItem('wa_videos') || '[]');
+  if(videos.length === 0){
+    idx = 0;
+    loadCurrent();
+    return;
+  }
+  idx = (idx + 1) % videos.length;
+  // delay slightly for smoothness
+  setTimeout(loadCurrent, 500);
+}
+
+/* clear any YT player if needed */
+function clearYTPlayer(){
+  try{ if(ytPlayer && typeof ytPlayer.destroy === 'function'){ ytPlayer.destroy(); ytPlayer = null; } }catch(e){}
+  clearInterval(countdownInterval);
+  playing = false;
+  rewarded = false;
+}
+
+/* skip button behavior (no reward) */
+qs('skipBtn').addEventListener('click', function(){
+  nextVideo();
+});
+
+/* on initial load - if API already present, call ready; if not, onYouTubeIframeAPIReady will call loadCurrent */
+if(window.YT && YT.Player){
+  // small setTimeout to ensure DOM ready
+  setTimeout(function(){ loadCurrent(); }, 200);
+}
+
+/* --------- other small helpers & messaging (original preserved) --------- */
+function alertProfessional(msg){
+  const el = document.createElement('div');
+  el.style.position = 'fixed';
+  el.style.left = '50%';
+  el.style.top = '18%';
+  el.style.transform = 'translateX(-50%)';
+  el.style.zIndex = 9999;
+  el.style.background = 'linear-gradient(90deg,#fff7f9,#fff)';
+  el.style.padding = '12px 18px';
+  el.style.borderRadius = '10px';
+  el.style.boxShadow = '0 10px 30px rgba(0,0,0,0.08)';
+  el.innerText = msg;
+  document.body.appendChild(el);
+  setTimeout(function(){ el.remove(); }, 2200);
+}
+</script>
+
+<!-- load youtube api (placed at end for reliability) -->
+<script async src="https://www.youtube.com/iframe_api"></script>
+</body>
+</html>

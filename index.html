@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>Watch and Earn — Login</title>
+<style>
+:root{
+  --bg:#e8f2ff;
+  --card:#ffffff;
+  --accent:#1e6fdb;
+  --accent-2:#0b57b5;
+  --muted:#48607f;
+  --success:#16a34a;
+  --danger:#ef4444;
+  --modal-shadow: 0 12px 40px rgba(11,87,181,0.12);
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter, system-ui, -apple-system, 'Segoe UI', Roboto, Arial;background:var(--bg);color:#14303b}
+.container{max-width:420px;margin:0 auto;padding:14px}
+.header{display:flex;align-items:center;gap:8px;padding:8px 0}
+.profile-circle{width:44px;height:44px;border-radius:50%;overflow:hidden;border:2px solid rgba(0,0,0,0.06);flex:0 0 44px}
+.profile-circle img{width:100%;height:100%;object-fit:cover;display:block}
+.title-center{flex:1;text-align:center;font-weight:800;color:var(--accent-2)}
+.menu-btn{width:44px;height:44px;border-radius:10px;background:var(--card);display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 6px 18px rgba(16,78,160,0.06)}
+.hamb{width:20px;height:14px;display:flex;flex-direction:column;justify-content:space-between}
+.hamb span{display:block;height:2px;background:var(--accent-2);border-radius:2px}
+.card{background:var(--card);border-radius:12px;padding:12px;box-shadow:var(--modal-shadow);margin-top:12px}
+.btn{display:inline-block;padding:10px 14px;border-radius:10px;background:linear-gradient(90deg,var(--accent),var(--accent-2));color:white;border:none;cursor:pointer;font-weight:800}
+.btn-ghost{background:transparent;border:1px solid rgba(20,48,59,0.06);color:var(--accent-2);padding:8px 12px;border-radius:10px;cursor:pointer}
+.small{font-size:13px;color:var(--muted)}
+.counter{font-weight:900;color:var(--accent-2);font-size:18px}
+.row{display:flex;align-items:center;gap:8px}
+.center{display:flex;align-items:center;justify-content:center}
+.footer-note{font-size:12px;color:var(--muted);text-align:center;margin-top:18px;padding-bottom:30px}
+.modal-backdrop{display:none;position:fixed;inset:0;background:rgba(2,6,23,0.45);align-items:center;justify-content:center;z-index:2000}
+.modal{width:92%;max-width:420px;background:linear-gradient(180deg,#fff,#fbfdff);border-radius:12px;padding:16px;box-shadow:0 30px 80px rgba(2,6,23,0.08);border:1px solid rgba(11,87,181,0.06)}
+.modal h3{margin:0 0 8px;font-size:18px;color:var(--accent-2)}
+.modal .muted{color:var(--muted);font-size:14px;margin-top:8px}
+.input{width:100%;padding:10px;border-radius:10px;border:1px solid rgba(11,87,181,0.08);Margin-top:8px;font-size:14px}
+.row-g{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.video-screen{background:#000;border-radius:10px;height:260px;overflow:hidden;display:flex;align-items:center;justify-content:center;color:#fff}
+.controls{display:flex;align-items:center;justify-content:space-between;margin-top:12px}
+.bottom-actions{display:flex;gap:8px;margin-top:14px}
+.big-box{flex:1;padding:12px;border-radius:12px;background:linear-gradient(90deg,#fff,#f4fbff);border:1px solid rgba(11,87,181,0.06);text-align:center;font-weight:800;color:var(--accent-2)}
+.view-box{width:90px;padding:12px;border-radius:12px;background:linear-gradient(90deg,#ffefef,#fff);border:1px solid rgba(0,0,0,0.04);text-align:center;font-weight:800;color:#ff5b7a;box-shadow:0 8px 28px rgba(255,91,122,0.06)}
+.hint{font-size:13px;color:var(--muted)}
+.badge{background:rgba(11,87,181,0.08);color:var(--accent-2);padding:6px 8px;border-radius:8px;font-weight:700}
+.linkish{color:var(--accent-2);text-decoration:underline;cursor:pointer}
+
+.center-screen{min-height:60vh;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px}
+.logo-cover{width:100%;height:260px;border-radius:12px;background:#dfefff;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative}
+.logo-cover img{width:100%;height:100%;object-fit:cover;display:block}
+.logo-text{
+position: absolute;
+color: white;
+font-weight:900;
+font-size:18px
+}
+
+.small-actions{display:flex;
+gap:10px;margin-top:10px}
+.hidden-admin{position:fixed;left:8px;bottom:8px;width:22px;height:22px;opacity:0.02;cursor:pointer}
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    background-color: #0b57b5;
+    position: relative;
+  }
+  .menu {
+    font-size: 24px;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+  <header>
+<div class="menu" id="menuBtn">☰</div>
+  </header>
+<div class="container">
+  <div class="center-screen">
+    <div class="logo-cover card">
+      <img src="image1.png" alt="cover">
+    </div>
+
+    <div style="width:100%;max-width:400px">
+      <button class="btn" id="createBtn">Create account</button>
+      <div class="small-actions">
+        <button class="btn-ghost" id="loginBtn">Login</button>
+      </div>
+      <div class="hint" style="margin-top:12px">Make sure your credentials are correct: uppercase, lowercase, spaces and symbols matter.</div>
+    </div>
+  </div>
+  <div class="hidden-admin" id="hiddenAdmin" title="secret"></div>
+</div>
+
+<div class="modal-backdrop" id="createModal"><div class="modal">
+  <h3>Create account</h3>
+  <input class="input" id="ca_username" placeholder="Username (unique)"/>
+  <input class="input" id="ca_email" placeholder="Email"/>
+  <input class="input" id="ca_pet" placeholder="Pet name (for recovery)"/>
+  <input class="input" id="ca_password" placeholder="Password"/>
+  <div style="display:flex;gap:8px;margin-top:12px">
+    <button class="btn" id="ca_submit">Submit</button>
+    <button class="btn-ghost" id="ca_cancel">Cancel</button>
+  </div>
+</div></div>
+
+<div class="modal-backdrop" id="loginModal"><div class="modal">
+  <h3>Login</h3>
+  <input class="input" id="li_email" placeholder="Email"/>
+  <input class="input" id="li_password" placeholder="Password"/>
+  <div style="margin-top:8px;display:flex;gap:8px">
+    <button class="btn" id="li_submit">Login</button>
+    <button class="btn-ghost" id="li_forgot">Forgot password</button>
+  </div>
+</div></div>
+
+<div class="modal-backdrop" id="forgotModal"><div class="modal">
+  <h3>Forgot password</h3>
+  <div class="muted">Enter your email and pet name to recover</div>
+  <input class="input" id="fg_email" placeholder="Email"/>
+  <input class="input" id="fg_pet" placeholder="Pet name"/>
+  <div style="display:flex;gap:8px;margin-top:10px">
+    <button class="btn" id="fg_check">Check</button>
+    <button class="btn-ghost" id="fg_cancel">Cancel</button>
+  </div>
+</div>
+</div>
+
+<script>
+const hidden = document.getElementById('hiddenAdmin');
+let clicks = 0;
+hidden.addEventListener('click', function(){ clicks++; if(clicks>=70) location.href='admin.html' });
+
+function qs(id){return document.getElementById(id)}
+qs('createBtn').addEventListener('click', function(){ qs('createModal').style.display='flex' })
+qs('ca_cancel').addEventListener('click', function(){ qs('createModal').style.display='none' })
+qs('ca_submit').addEventListener('click', function(){
+  const username = qs('ca_username').value.trim();
+  const email = qs('ca_email').value.trim().toLowerCase();
+  const pet = qs('ca_pet').value.trim();
+  const pwd = qs('ca_password').value;
+  if(!username || !email || !pwd){ showMessage('Please fill all fields'); return; }
+  const users = JSON.parse(localStorage.getItem('wa_users')||'{}');
+  if(users[email]){ showMessage('Email already registered'); return; }
+  const ref = username.substring(0,5).toUpperCase();
+  users[email] = {username:username, email:email, pet:pet, password: pwd, balance:0, disabled:false, refCode: ref, redeemed: []};
+  localStorage.setItem('wa_users', JSON.stringify(users));
+  qs('createModal').style.display='none';
+  showMessage('Account created successfully — please login');
+});
+
+qs('loginBtn').addEventListener('click', function(){ qs('loginModal').style.display='flex' })
+qs('li_submit').addEventListener('click', function(){
+  const email = qs('li_email').value.trim().toLowerCase();
+  const pwd = qs('li_password').value;
+  const users = JSON.parse(localStorage.getItem('wa_users')||'{}');
+  if(!users[email]||users[email].password!==pwd){ showMessage('Wrong credentials'); return; }
+  if(users[email].disabled){ showMessage('Account disabled'); return; }
+  localStorage.setItem('wa_current', email);
+  showLoading('Logging in...',2000, function(){ location.href='dashboard.html' });
+});
+
+qs('li_forgot').addEventListener('click', function(){ qs('loginModal').style.display='none'; qs('forgotModal').style.display='flex' })
+qs('fg_cancel').addEventListener('click', function(){ qs('forgotModal').style.display='none' })
+qs('fg_check').addEventListener('click', function(){
+  const email = qs('fg_email').value.trim().toLowerCase();
+  const pet = qs('fg_pet').value.trim();
+  const users = JSON.parse(localStorage.getItem('wa_users')||'{}');
+  if(!users[email]){ showMessage('Email not found'); return; }
+  if(users[email].pet!==pet){ showMessage('Pet name does not match'); return; }
+  const newPwd = prompt('Enter new password (will be saved locally)');
+  if(newPwd){ users[email].password = newPwd; localStorage.setItem('wa_users', JSON.stringify(users)); showMessage('Password changed. Please login.'); qs('forgotModal').style.display='none' }
+});
+
+function showMessage(msg){
+  const el = document.createElement('div'); el.style.position='fixed'; el.style.left='50%'; el.style.top='18%'; el.style.transform='translateX(-50%)'; el.style.zIndex=9999;
+  el.style.background='linear-gradient(90deg,#fff7f9,#fff)'; el.style.padding='12px 18px'; el.style.borderRadius='10px'; el.style.boxShadow='0 10px 30px rgba(0,0,0,0.08)'; el.innerText=msg;
+  document.body.appendChild(el); setTimeout(function(){el.remove()},2200);
+}
+function showLoading(text,ms,cb){
+  const el=document.createElement('div'); el.style.position='fixed'; el.style.left='50%'; el.style.top='38%'; el.style.transform='translateX(-50%)'; el.style.zIndex=9999;
+  el.style.background='white'; el.style.padding='18px'; el.style.borderRadius='12px'; el.style.display='flex'; el.style.flexDirection='column'; el.style.alignItems='center'; el.style.boxShadow='0 30px 80px rgba(2,6,23,0.08)';
+  el.innerHTML = '<div style="font-weight:900;margin-bottom:10px">'+text+'</div><div style="width:120px;height:8px;background:#f1f5f9;border-radius:999px;overflow:hidden"><div style="height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent-2));transition:width '+ms+'ms linear"></div></div>';
+  document.body.appendChild(el);
+  setTimeout(function(){ el.style.opacity=0; setTimeout(function(){el.remove()},300); if(cb)cb() }, ms);
+}
+</script>
+</body>
+</html>
