@@ -1,77 +1,116 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>Withdraw — Watch and Earn</title><style>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Withdraw — Watch & Earn</title>
+<style>
 :root{
   --bg:#e8f2ff;
   --card:#ffffff;
   --accent:#1e6fdb;
   --accent-2:#0b57b5;
   --muted:#48607f;
-  --success:#16a34a;
-  --danger:#ef4444;
-  --modal-shadow: 0 12px 40px rgba(11,87,181,0.12);
 }
 *{box-sizing:border-box}
-body{margin:0;font-family:Inter, system-ui, -apple-system, 'Segoe UI', Roboto, Arial;background:var(--bg);color:#14303b}
+body{margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial;background:var(--bg);color:#14303b}
 .container{max-width:420px;margin:0 auto;padding:14px}
-.header{display:flex;align-items:center;gap:8px;padding:8px 0}
-.card{background:var(--card);border-radius:12px;padding:12px;box-shadow:0 30px 80px rgba(2,6,23,0.08);margin-top:12px}
-.btn{display:inline-block;padding:10px 14px;border-radius:10px;background:linear-gradient(90deg,var(--accent),var(--accent-2));color:white;border:none;cursor:pointer;font-weight:800}
+.card{background:var(--card);border-radius:12px;padding:14px;box-shadow:0 20px 60px rgba(2,6,23,0.08);margin-top:14px}
+.btn{display:inline-block;padding:10px 14px;border-radius:10px;background:linear-gradient(90deg,var(--accent),var(--accent-2));color:#fff;border:none;cursor:pointer;font-weight:700}
 .btn-ghost{background:transparent;border:1px solid rgba(20,48,59,0.06);color:var(--accent-2);padding:8px 12px;border-radius:10px;cursor:pointer}
 .input{width:100%;padding:10px;border-radius:10px;border:1px solid rgba(11,87,181,0.08);margin-top:8px;font-size:14px}
+.muted{color:var(--muted);font-size:14px}
+.note{font-size:13px;color:var(--muted);margin-top:10px}
 .modal-backdrop{display:none;position:fixed;inset:0;background:rgba(2,6,23,0.45);align-items:center;justify-content:center;z-index:2000}
-.modal{width:92%;max-width:420px;background:linear-gradient(180deg,#fff,#fbfdff);border-radius:12px;padding:16px;box-shadow:0 30px 80px rgba(2,6,23,0.08);border:1px solid rgba(11,87,181,0.06)}
-.muted{color:var(--muted)}
-.note{font-size:13px;color:var(--muted);margin-top:8px}
-</style></head><body>
+.modal{width:92%;max-width:420px;background:#fff;border-radius:12px;padding:16px;box-shadow:0 20px 60px rgba(2,6,23,0.08)}
+</style>
+</head>
+<body>
 <div class="container">
-  <div class="header"><div class="title-center">Withdraw</div></div>
+  <h2 style="color:var(--accent-2)">Withdraw</h2>
   <div class="card">
-    <div class="muted">Available: ₦<span id="avail">0</span></div>
+    <div class="muted">Available Balance: ₦<span id="avail">0</span></div>
     <input class="input" id="amount" placeholder="Enter amount (₦5000 - ₦10000)"/>
-    <div style="display:flex;gap:8px;margin-top:10px"><button class="btn" id="sendBtn">Send</button><button class="btn-ghost" id="cancelBtn">Cancel</button></div>
-    <div class="note">On success you will be redirected to WhatsApp with a withdrawal code. Minimum ₦5000. Max ₦10000 per request.</div>
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <button class="btn" id="sendBtn">Send</button>
+      <button class="btn-ghost" id="cancelBtn">Cancel</button>
+    </div>
+    <div class="note">Minimum ₦5000 — Maximum ₦10000 per request. You’ll receive a WhatsApp message automatically.</div>
   </div>
-  <div class="footer-note">Refer people & earn more, Contact us if you encounter any problems.</div>
 </div>
 
-<div class="modal-backdrop" id="succModal"><div class="modal"><h3>Success</h3><div id="succText" class="muted"></div><div style="text-align:right;margin-top:10px"><button class="btn" id="succOk">OK</button></div></div>
+<div class="modal-backdrop" id="succModal">
+  <div class="modal">
+    <h3>Success</h3>
+    <div class="muted" id="succText"></div>
+    <div style="text-align:right;margin-top:10px"><button class="btn" id="succOk">OK</button></div>
+  </div>
 </div>
 
-<script>
-const codes = ["WE-₦hero1001#🔻🔺","WE-₦hero1002@🔺⭐️","WE-₦hero1003$⭐️❇️","WE-₦hero1004%❇️✨","WE-₦hero1005&✨⚡️","WE-₦hero1006*⚡️🔥","WE-₦hero1007+🔥💠","WE-₦hero1008-💠✅","WE-₦hero1009_✅⬇️","WE-₦hero1010=⬇️🔻","WE-₦valor1001@⭐️❇️","WE-₦valor1002$❇️✨","WE-₦valor1003%✨⚡️","WE-₦valor1004&⚡️🔥","WE-₦valor1005*🔥💠","WE-₦gold1001$✨⚡️","WE-₦gold1002%⚡️🔥","WE-₦gold1003&🔥💠","WE-₦gold1004*💠✅","WE-₦gold1005+✅⬇️","WE-₦star1001&🔥💠","WE-₦star1002*💠✅","WE-₦star1003+✅⬇️","WE-₦star1004-⬇️🔻","WE-₦star1005_🔺⭐️","WE-₦gem1001*✅⬇️","WE-₦gem1002+⬇️🔻","WE-₦gem1003-🔺⭐️","WE-₦gem1004_⭐️❇️","WE-₦gem1005=❇️✨","WE-₦lucky1001+🔺⭐️","WE-₦lucky1002-⭐️❇️","WE-₦lucky1003_❇️✨","WE-₦lucky1004=✨⚡️","WE-₦lucky1005~⚡️🔥","WE-₦nova1001_❇️✨","WE-₦nova1002=✨⚡️","WE-₦nova1003~⚡️🔥","WE-₦nova1004^🔥💠","WE-₦nova1005/💠✅","WE-₦prime1001=⚡️🔥","WE-₦prime1002~🔥💠","WE-₦prime1003^💠✅","WE-₦prime1004/✅⬇️","WE-₦prime1005:⬇️🔻","WE-₦alpha1001~💠✅","WE-₦alpha1002^✅⬇️","WE-₦alpha1003/⬇️🔻","WE-₦alpha1004:🔺⭐️","WE-₦alpha1005;⭐️❇️","WE-₦omega1001^⬇️🔻","WE-₦omega1002/🔺⭐️","WE-₦omega1003:⭐️❇️","WE-₦omega1004;❇️✨","WE-₦omega1005?✨⚡️","WE-₦flux1001/⭐️❇️","WE-₦flux1002:❇️✨","WE-₦flux1003;✨⚡️","WE-₦flux1004?⚡️🔥","WE-₦flux1005!🔥💠","WE-₦spark1001;✨⚡️","WE-₦spark1002?⚡️🔥","WE-₦spark1003!🔥💠","WE-₦spark1004|💠✅","WE-₦spark1005.✅⬇️","WE-₦blaze1001?⚡️🔥","WE-₦blaze1002!🔥💠","WE-₦blaze1003|💠✅","WE-₦blaze1004.✅⬇️","WE-₦blaze1005#⬇️🔻","WE-₦crest1001!🔥💠","WE-₦crest1002|💠✅","WE-₦crest1003.✅⬇️","WE-₦crest1004#⬇️🔻","WE-₦crest1005@🔺⭐️","WE-₦echo1001|✅⬇️","WE-₦echo1002.⬇️🔻","WE-₦echo1003#🔺⭐️","WE-₦echo1004@⭐️❇️","WE-₦echo1005$❇️✨"];
-function qs(id){return document.getElementById(id)}
-const current = localStorage.getItem('wa_current');
-if(!current){ location.href='index.html'; }
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
+import { getFirestore, collection, addDoc, getDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCzFqbBdIMucN6A7zE6US6aZziyp_3lMB0",
+  authDomain: "watchandarn.firebaseapp.com",
+  projectId: "watchandarn",
+  storageBucket: "watchandarn.firebasestorage.app",
+  messagingSenderId: "670181055241",
+  appId: "1:670181055241:web:974eabbaff1c2cbf28d1d8",
+  measurementId: "G-P1QGG9WV4R"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+function qs(id){return document.getElementById(id);}
+function alertProfessional(msg){
+  const el=document.createElement('div');
+  el.style.position='fixed';el.style.left='50%';el.style.top='18%';el.style.transform='translateX(-50%)';el.style.zIndex=9999;
+  el.style.background='linear-gradient(90deg,#fff7f9,#fff)';el.style.padding='12px 18px';el.style.borderRadius='10px';el.style.boxShadow='0 10px 30px rgba(0,0,0,0.08)';
+  el.innerText=msg;document.body.appendChild(el);setTimeout(()=>el.remove(),2200);
+}
+
+const currentEmail = localStorage.getItem('wa_current');
+if(!currentEmail){location.href='index.html';}
 let users = JSON.parse(localStorage.getItem('wa_users')||'{}');
-let user = users[current];
-if(!user){ location.href='index.html' }
+let user = users[currentEmail];
+if(!user){location.href='index.html';}
 qs('avail').innerText = (user.balance||0).toFixed(0);
 
-qs('cancelBtn').addEventListener('click', function(){ location.href='dashboard.html' });
-qs('sendBtn').addEventListener('click', function(){
-  let amt = Number(qs('amount').value||0);
-  if(isNaN(amt)||amt<5000){ alertProfessional('Minimum withdrawal is ₦5000'); return; }
-  if(amt>10000){ alertProfessional('Maximum per request is ₦10000'); return; }
-  if((user.balance||0) < amt){ alertProfessional('Insufficient balance'); return; }
-  const used = JSON.parse(localStorage.getItem('wa_used_codes')||'{}');
-  const userUsed = used[current] || [];
-  const now = Date.now();
-  const valid = codes.filter(function(c){ return !userUsed.find(function(u){ return u.code===c && (now - u.ts) < (80*3600*1000) }) });
-  if(valid.length===0){ alertProfessional('No codes available right now'); return; }
-  const code = valid[Math.floor(Math.random()*valid.length)];
-  user.balance = (user.balance||0) - amt;
-  users[current]=user; localStorage.setItem('wa_users', JSON.stringify(users));
-  used[current] = userUsed || []; used[current].push({code: code, ts: now}); localStorage.setItem('wa_used_codes', JSON.stringify(used));
-  qs('avail').innerText = user.balance.toFixed(0);
-  qs('succText').innerText = 'You requested ₦'+amt+'. Code: '+code;
-  qs('succModal').style.display='flex';
-  qs('succOk').onclick = function(){ qs('succModal').style.display='none'; const msg = encodeURIComponent('I withdrew ₦'+amt+' using code '+code); window.open('https://wa.me/?text='+msg,'_blank'); location.href='dashboard.html' }
-});
+qs('cancelBtn').addEventListener('click',()=>location.href='dashboard.html');
 
-function alertProfessional(msg){
-  const el=document.createElement('div'); el.style.position='fixed'; el.style.left='50%'; el.style.top='18%'; el.style.transform='translateX(-50%)'; el.style.zIndex=9999;
-  el.style.background='linear-gradient(90deg,#fff7f9,#fff)'; el.style.padding='12px 18px'; el.style.borderRadius='10px'; el.style.boxShadow='0 10px 30px rgba(0,0,0,0.08)'; el.innerText=msg;
-  document.body.appendChild(el); setTimeout(function(){el.remove()},2200);
-}
+qs('sendBtn').addEventListener('click',async()=>{
+  let amt = Number(qs('amount').value||0);
+  if(isNaN(amt)||amt<5000){alertProfessional('Minimum ₦5000');return;}
+  if(amt>10000){alertProfessional('Maximum ₦10000');return;}
+  if((user.balance||0)<amt){alertProfessional('Insufficient balance');return;}
+
+  const code = 'WE-'+Math.random().toString(36).substr(2,6).toUpperCase();
+  user.balance -= amt;
+  users[currentEmail]=user;
+  localStorage.setItem('wa_users',JSON.stringify(users));
+  qs('avail').innerText=user.balance.toFixed(0);
+
+  const data = {
+    email: currentEmail,
+    amount: amt,
+    code: code,
+    time: Date.now(),
+    status: 'pending'
+  };
+  await addDoc(collection(db,'withdrawals'),data);
+
+  qs('succText').innerText='₦'+amt+' request sent. Code: '+code;
+  qs('succModal').style.display='flex';
+  qs('succOk').onclick=()=>{
+    qs('succModal').style.display='none';
+    const msg = encodeURIComponent('I just withdrew ₦'+amt+' | Code: '+code);
+    window.open('https://wa.me/2347031935351?text='+msg,'_blank');
+    location.href='dashboard.html';
+  };
+});
 </script>
 </body>
 </html>
