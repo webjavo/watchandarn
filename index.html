@@ -1,101 +1,209 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Watch & Earn</title>
-<style>
-body{margin:0;font-family:Inter,system-ui,Arial;background:#f5f8ff;color:#123}
-.container{max-width:420px;margin:0 auto;text-align:center;padding:0 14px}
-.cover{width:100%;height:240px;overflow:hidden;border-radius:12px;margin-top:20px}
-.cover img{width:100%;height:100%;object-fit:cover;border-radius:12px}
-.btn{background:#1e6fdb;color:#fff;padding:10px 18px;border:none;border-radius:10px;cursor:pointer;font-weight:700;margin-top:14px}
-.btn-ghost{background:transparent;border:1px solid rgba(0,0,0,0.1);padding:10px 18px;border-radius:10px;cursor:pointer;margin-top:14px}
-.input{width:100%;padding:10px;border-radius:10px;border:1px solid rgba(0,0,0,0.1);margin-top:8px;font-size:14px}
-.modal-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:1000;align-items:center;justify-content:center}
-.modal{background:#fff;border-radius:12px;padding:16px;width:92%;max-width:420px;box-shadow:0 10px 30px rgba(0,0,0,0.1)}
-h3{margin:0 0 10px}
-.toast{position:fixed;left:50%;top:18%;transform:translateX(-50%);background:#fff;padding:12px 18px;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,0.08);z-index:9999;font-weight:600;color:#1e6fdb;opacity:0;transition:opacity .3s}
-.toast.show{opacity:1}
-
-.small-actions{display:flex;
-gap:10px;margin-top:10px}
-.hidden-admin{position:fixed;left:8px;bottom:8px;width:22px;height:22px;opacity:0.02;cursor:pointer}
-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px;
-    background-color: #0b57b5;
-    position: relative;
-  }
-  .menu {
-    font-size: 24px;
-    cursor: pointer;
-  }
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Watch & Earn</title>
+  <style>
+    body{margin:0;font-family:Inter,system-ui,Arial;background:#f5f8ff;color:#123}
+    .container{max-width:420px;margin:0 auto;text-align:center;padding:0 14px}
+    .cover{width:100%;height:240px;overflow:hidden;border-radius:12px;margin-top:20px}
+    .cover img{width:100%;height:100%;object-fit:cover;border-radius:12px}
+    .btn{background:#1e6fdb;color:#fff;padding:10px 18px;border:none;border-radius:10px;cursor:pointer;font-weight:700;margin-top:14px}
+    .btn-ghost{background:transparent;border:1px solid rgba(0,0,0,0.1);padding:10px 18px;border-radius:10px;cursor:pointer;margin-top:14px}
+    .input{width:100%;padding:10px;border-radius:10px;border:1px solid rgba(0,0,0,0.1);margin-top:8px;font-size:14px}
+    .modal-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:1000;align-items:center;justify-content:center}
+    .modal{background:#fff;border-radius:12px;padding:16px;width:92%;max-width:420px;box-shadow:0 10px 30px rgba(0,0,0,0.1)}
+    h3{margin:0 0 10px}
+    .toast{position:fixed;left:50%;top:18%;transform:translateX(-50%);background:#fff;padding:12px 18px;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,0.08);z-index:9999;font-weight:600;color:#1e6fdb;opacity:0;transition:opacity .3s}
+    .toast.show{opacity:1}
+    .hidden-admin{position:fixed;left:8px;bottom:8px;width:35px;height:35px;opacity:0;z-index:9999;cursor:pointer;}
+    header {display:flex;justify-content:space-between;align-items:center;padding:15px;background-color:#0b57b5;position:relative;}
+    .menu {font-size:24px;cursor:pointer;color:#fff}
+  </style>
 </head>
 <body>
-  
-   <header>
-<div class="menu" id="menuBtn">☰</div>
-  </header> 
-  
-<div class="container">
-  <div class="cover"><img src="image1.png" alt="cover"></div>
-  <button class="btn" id="openCreate">Create Account</button>
-  <button class="btn-ghost" id="openLogin">Login</button>
-</div>
+  <header>
+    <div class="menu" id="menuBtn">☰</div>
+  </header>
 
-<!-- CREATE ACCOUNT -->
-<div class="modal-backdrop" id="createModal">
-  <div class="modal">
-    <h3>Create account</h3>
-    <input class="input" id="ca_username" placeholder="Username (unique)">
-    <input class="input" id="ca_email" placeholder="Email">
-    <input class="input" id="ca_pet" placeholder="Pet name (for recovery)">
-    <input class="input" id="ca_password" placeholder="Password" type="password">
-    <div style="display:flex;gap:8px;margin-top:12px">
-      <button class="btn" id="ca_submit">Submit</button>
-      <button class="btn-ghost" id="ca_cancel">Cancel</button>
+  <div class="container">
+    <div class="cover"><img src="image1.png" alt="cover"></div>
+    <button class="btn" id="openCreate">Create Account</button>
+    <button class="btn-ghost" id="openLogin">Login</button>
+  </div>
+
+  <!-- CREATE ACCOUNT -->
+  <div class="modal-backdrop" id="createModal">
+    <div class="modal">
+      <h3>Create account</h3>
+      <input class="input" id="ca_username" placeholder="Username (unique)">
+      <input class="input" id="ca_email" placeholder="Email">
+      <input class="input" id="ca_pet" placeholder="Pet name (for recovery)">
+      <input class="input" id="ca_password" placeholder="Password" type="password">
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <button class="btn" id="ca_submit">Submit</button>
+        <button class="btn-ghost" id="ca_cancel">Cancel</button>
+      </div>
     </div>
   </div>
-</div>
 
-<!-- LOGIN -->
-<div class="modal-backdrop" id="loginModal">
-  <div class="modal">
-    <h3>Login</h3>
-    <input class="input" id="li_email" placeholder="Email">
-    <input class="input" id="li_password" placeholder="Password" type="password">
-    <div style="margin-top:8px;display:flex;gap:8px">
-      <button class="btn" id="li_submit">Login</button>
-      <button class="btn-ghost" id="li_forgot">Forgot password</button>
+  <!-- LOGIN -->
+  <div class="modal-backdrop" id="loginModal">
+    <div class="modal">
+      <h3>Login</h3>
+      <input class="input" id="li_email" placeholder="Email">
+      <input class="input" id="li_password" placeholder="Password" type="password">
+      <div style="margin-top:8px;display:flex;gap:8px">
+        <button class="btn" id="li_submit">Login</button>
+        <button class="btn-ghost" id="li_forgot">Forgot password</button>
+      </div>
     </div>
   </div>
-</div>
 
-<!-- FORGOT -->
-<div class="modal-backdrop" id="forgotModal">
-  <div class="modal">
-    <h3>Forgot password</h3>
-    <div class="muted">Enter your email and pet name to recover</div>
-    <input class="input" id="fg_email" placeholder="Email">
-    <input class="input" id="fg_pet" placeholder="Pet name">
-    <div style="display:flex;gap:8px;margin-top:10px">
-      <button class="btn" id="fg_check">Check</button>
-      <button class="btn-ghost" id="fg_cancel">Cancel</button>
+  <!-- FORGOT -->
+  <div class="modal-backdrop" id="forgotModal">
+    <div class="modal">
+      <h3>Forgot password</h3>
+      <div class="muted">Enter your email and pet name to recover</div>
+      <input class="input" id="fg_email" placeholder="Email">
+      <input class="input" id="fg_pet" placeholder="Pet name">
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <button class="btn" id="fg_check">Check</button>
+        <button class="btn-ghost" id="fg_cancel">Cancel</button>
+      </div>
     </div>
   </div>
-</div>
 
-<!-- Hidden Admin Access Button -->
-<div id="hiddenAdminBtn"
-     style="position:fixed;bottom:8px;left:8px;width:35px;height:35px;opacity:0;z-index:9999;cursor:pointer;">
-</div>
+  <div id="toast" class="toast"></div>
+  <div id="hiddenAdminBtn" class="hidden-admin" title="admin"></div>
 
-<div id="toast" class="toast"></div>
+<script type="module">
+  // Firebase initialization (shared, modular SDK)
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
+  import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+  import { getFirestore, doc, setDoc, getDoc, query, collection, where, getDocs } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
+  const firebaseConfig = {
+    apiKey: "AIzaSyCzFqbBdIMucN6A7zE6US6aZziyp_3lMB0",
+    authDomain: "watchandarn.firebaseapp.com",
+    projectId: "watchandarn",
+    storageBucket: "watchandarn.appspot.com",
+    messagingSenderId: "670181055241",
+    appId: "1:670181055241:web:974eabbaff1c2cbf28d1d8",
+    measurementId: "G-P1QGG9WV4R"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  // Helpers
+  const el = id => document.getElementById(id);
+  function toast(msg){
+    const t = el('toast');
+    t.innerText = msg;
+    t.classList.add('show');
+    setTimeout(()=>t.classList.remove('show'),2200);
+  }
+  function showModal(id){ const m = el(id); if(m) m.style.display='flex'; }
+  function hideModal(id){ const m = el(id); if(m) m.style.display='none'; }
+
+  // Modal buttons
+  el('openCreate').onclick = ()=> showModal('createModal');
+  el('openLogin').onclick = ()=> showModal('loginModal');
+  el('ca_cancel').onclick = ()=> hideModal('createModal');
+  el('fg_cancel').onclick = ()=> hideModal('forgotModal');
+  el('li_forgot').onclick = ()=> { hideModal('loginModal'); showModal('forgotModal'); };
+
+  // Redirect if already signed-in
+  onAuthStateChanged(auth, user => {
+    if(user) window.location.href = 'dashboard.html';
+  });
+
+  // Create Account handler
+  el('ca_submit').onclick = async () => {
+    const username = el('ca_username').value.trim();
+    const email = el('ca_email').value.trim();
+    const pet = el('ca_pet').value.trim();
+    const pass = el('ca_password').value;
+    if(!username || !email || !pet || !pass){ toast('Fill all fields'); return; }
+    try {
+      // ensure username is unique (simple check)
+      const q = query(collection(db,'users'), where('username','==',username));
+      const snap = await getDocs(q);
+      if(!snap.empty){ toast('Username already taken'); return; }
+
+      const cred = await createUserWithEmailAndPassword(auth, email, pass);
+      const uid = cred.user.uid;
+      await setDoc(doc(db,'users',uid), {
+        username, email, petName: pet, balance: 0, createdAt: new Date().toISOString()
+      });
+      toast('Account created!');
+      hideModal('createModal');
+      setTimeout(()=> window.location.href = 'dashboard.html', 900);
+    } catch(e){
+      toast(e.code || e.message || 'Create failed');
+      console.error(e);
+    }
+  };
+
+  // Login handler
+  el('li_submit').onclick = async () => {
+    const email = el('li_email').value.trim();
+    const pass = el('li_password').value;
+    if(!email || !pass){ toast('Enter email & password'); return; }
+    try {
+      await signInWithEmailAndPassword(auth, email, pass);
+      toast('Login success');
+      hideModal('loginModal');
+      setTimeout(()=> window.location.href = 'dashboard.html', 800);
+    } catch(e){
+      toast('Login failed: ' + (e.code || e.message));
+      console.error(e);
+    }
+  };
+
+  // Forgot password flow (pet check) - limited: show admin message or use Firebase reset
+  el('fg_check').onclick = async () => {
+    const email = el('fg_email').value.trim();
+    const pet = el('fg_pet').value.trim();
+    if(!email || !pet){ toast('Enter email & pet name'); return; }
+    try {
+      // Lookup user record by email in Firestore
+      const q = query(collection(db,'users'), where('email','==',email));
+      const snap = await getDocs(q);
+      if(snap.empty){ toast('No account found'); return; }
+      const docu = snap.docs[0];
+      const data = docu.data();
+      if((data.petName||'').toLowerCase() !== pet.toLowerCase()){
+        toast('Pet name mismatch');
+        return;
+      }
+      // Pet matched — send password reset email via Auth
+      // Note: sending reset email requires importing sendPasswordResetEmail; keep simple message for now
+      toast('Pet verified. Ask admin to reset password or implement password reset.');
+    } catch(e){
+      toast('Recovery failed');
+      console.error(e);
+    }
+  };
+
+  // Hidden admin navigation (tap multiple times)
+  (function(){
+    let tapCount = 0, resetTimer = null;
+    const btn = el('hiddenAdminBtn');
+    if(!btn) return;
+    btn.addEventListener('click', () => {
+      tapCount++;
+      if(tapCount >= 70){ tapCount = 0; window.location.href = 'admin.html'; }
+      clearTimeout(resetTimer);
+      resetTimer = setTimeout(()=> tapCount = 0, 5000);
+    });
+  })();
+</script>
+</body>
+</html>
 <script type="module">
 // --- Firebase imports (CDN) ---
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
