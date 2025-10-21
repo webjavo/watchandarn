@@ -93,11 +93,11 @@
 
   <!-- Firebase SDK -->
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
-    import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
-    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
+import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
 
-  const firebaseConfig = {
+const firebaseConfig = {
   apiKey: "AIzaSyCzFqbBdIMucN6A7zE6US6aZziyp_3lMB0",
   authDomain: "watchandarn.firebaseapp.com",
   projectId: "watchandarn",
@@ -107,173 +107,119 @@
   measurementId: "G-P1QGG9WV4R"
 };
 
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
 
+const qs = (id)=>document.getElementById(id);
+function toast(msg){
+  const el=document.createElement('div');
+  el.style.position='fixed';el.style.left='50%';el.style.top='18%';
+  el.style.transform='translateX(-50%)';el.style.background='#fff';
+  el.style.padding='10px 18px';el.style.borderRadius='10px';
+  el.style.boxShadow='0 5px 20px rgba(0,0,0,0.1)';el.style.zIndex='9999';
+  el.innerText=msg;document.body.appendChild(el);
+  setTimeout(()=>el.remove(),2000);
+}
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const auth = getAuth(app);
+onAuthStateChanged(auth, async (u)=>{
+  if(!u){ window.location.href='index.html'; return; }
+  user=u;
+  await loadUserData();
+  await loadVideos();
+});
 
-    let user = null;
-    let ytPlayer = null;
-    let videos = [];
-    let idx = 0;
-    let countdown = 0;
-    let countdownInterval = null;
-    let playing = false;
-    let rewarded = false;
+async function loadUserData(){
+  const ref=doc(db,'users',user.uid);
+  const snap=await getDoc(ref);
+  if(snap.exists()){
+    qs('balAmt').innerText=snap.data().balance||0;
+    qs('myRef').innerText=snap.data().refCode||user.uid.slice(0,6);
+  }else{
+    await setDoc(ref,{balance:0,refCode:user.uid.slice(0,6)});
+    qs('balAmt').innerText=0;
+    qs('myRef').innerText=user.uid.slice(0,6);
+  }
+}
 
-    // Helper selector
-    const qs = (id)=>document.getElementById(id);
+async function loadVideos(){
+  const vRef=collection(db,'videos');
+  const vSnap=await getDocs(vRef);
+  videos=vSnap.docs.map(d=>d.data());
+  if(videos.length===0){
+    qs('videoScreen').innerHTML='<div id="videoPoster" style="display:flex;align-items:center;justify-content:center;color:#fff;height:100%">No video available</div>';
+    return;
+  }
+  loadCurrent();
+}
 
-    // Toast messages
-    function toast(msg){
-      const el=document.createElement('div');
-      el.style.position='fixed';el.style.left='50%';el.style.top='18%';
-      el.style.transform='translateX(-50%)';el.style.background='#fff';
-      el.style.padding='10px 18px';el.style.borderRadius='10px';
-      el.style.boxShadow='0 5px 20px rgba(0,0,0,0.1)';el.style.zIndex='9999';
-      el.innerText=msg;document.body.appendChild(el);
-      setTimeout(()=>el.remove(),2000);
-    }
+function extractYouTubeId(url){
+  const m=url.match(/(?:v=|\/)([0-9A-Za-z_-]{11})/);
+  return m?m[1]:url;
+}
 
-    onAuthStateChanged(auth, async (u)=>{
-      if(!u){ window.location.href='index.html'; return; }
-      user=u;
-      await loadUserData();
-      await loadVideos();
-    });
+let ytPlayer, idx=0, countdown=0, countdownInterval, playing=false, rewarded=false;
 
-    async function loadUserData(){
-      const ref=doc(db,'users',user.uid);
-      const snap=await getDoc(ref);
-      if(snap.exists()){
-        qs('balAmt').innerText=snap.data().balance||0;
-        qs('myRef').innerText=snap.data().refCode||user.uid.slice(0,6);
-      }else{
-        await setDoc(ref,{balance:0,refCode:user.uid.slice(0,6)});
-        qs('balAmt').innerText=0;
-        qs('myRef').innerText=user.uid.slice(0,6);
-      }
-    }
+function loadCurrent(){
+  const v=videos[idx];
+  if(!v){ toast('No more videos'); return; }
+  const vidId=extractYouTubeId(v.url);
+  countdown=v.seconds||10;
+  qs('secondsLeft').innerText=countdown;
+  qs('coinsToGet').innerText=v.coins||0;
+  rewarded=false;
+  qs('videoScreen').innerHTML='<div id="player"></div>';
+  if(ytPlayer && ytPlayer.destroy) ytPlayer.destroy();
+  ytPlayer=new YT.Player('player',{
+    height:'100%',width:'100%',videoId:vidId,
+    playerVars:{autoplay:1,playsinline:1,rel:0,enablejsapi:1,modestbranding:1},
+    events:{'onStateChange':onPlayerStateChange}
+  });
+}
 
-    async function loadVideos(){
-      const vRef=collection(db,'videos');
-      const vSnap=await getDocs(vRef);
-      videos=vSnap.docs.map(d=>d.data());
-      if(videos.length===0){
-        qs('videoScreen').innerHTML='<div id="videoPoster" style="display:flex;align-items:center;justify-content:center;color:#fff;height:100%">No video available</div>';
-        return;
-      }
-      loadCurrent();
-    }
+function onPlayerStateChange(e){
+  const s=e.data;
+  if(s===1){ playing=true; startCountdown(); }
+  else if([2,3].includes(s)){ playing=false; clearInterval(countdownInterval); }
+  else if(s===0 && !rewarded){ rewardUser(); nextVideo(); }
+}
 
-    function extractYouTubeId(url){
-      if(!url)return'';
-      const m=url.match(/(?:v=|\/)([0-9A-Za-z_-]{11})/);
-      return m?m[1]:url;
-    }
+function startCountdown(){
+  clearInterval(countdownInterval);
+  countdownInterval=setInterval(()=>{
+    if(!playing)return;
+    countdown--;
+    qs('secondsLeft').innerText=countdown;
+    if(countdown<=0){ clearInterval(countdownInterval); if(!rewarded){ rewardUser(); nextVideo(); } }
+  },1000);
+}
 
-    function loadCurrent(){
-      const v=videos[idx];
-      if(!v){ toast('No more videos'); return; }
-      const vidId=extractYouTubeId(v.url);
-      countdown=v.seconds||10;
-      qs('secondsLeft').innerText=countdown;
-      qs('coinsToGet').innerText=v.coins||0;
-      rewarded=false;
-      qs('videoScreen').innerHTML='<div id="player"></div>';
-      if(ytPlayer && ytPlayer.destroy) ytPlayer.destroy();
-      ytPlayer=new YT.Player('player',{
-        height:'100%',width:'100%',videoId:vidId,
-        playerVars:{autoplay:1,playsinline:1,rel:0,enablejsapi:1,modestbranding:1},
-        events:{'onStateChange':onPlayerStateChange}
-      });
-    }
+async function rewardUser(){
+  const v=videos[idx];
+  const coins=v.coins||0;
+  const ref=doc(db,'users',user.uid);
+  const snap=await getDoc(ref);
+  let bal=snap.exists()?snap.data().balance||0:0;
+  bal+=coins;
+  await updateDoc(ref,{balance:bal});
+  qs('balAmt').innerText=bal;
+  rewarded=true;
+  toast(`+${coins} coins added`);
+}
 
-    function onPlayerStateChange(e){
-      const s=e.data;
-      if(s===1){ playing=true; startCountdown(); }
-      else if([2,3].includes(s)){ playing=false; clearInterval(countdownInterval); }
-      else if(s===0 && !rewarded){ rewardUser(); nextVideo(); }
-    }
+function nextVideo(){
+  try{ if(ytPlayer && ytPlayer.stopVideo) ytPlayer.stopVideo(); }catch{}
+  clearInterval(countdownInterval);
+  playing=false; rewarded=false;
+  idx=(idx+1)%videos.length;
+  setTimeout(loadCurrent,500);
+}
 
-    function startCountdown(){
-      clearInterval(countdownInterval);
-      countdownInterval=setInterval(()=>{
-        if(!playing)return;
-        countdown--;
-        qs('secondsLeft').innerText=countdown;
-        if(countdown<=0){ clearInterval(countdownInterval); if(!rewarded){ rewardUser(); nextVideo(); } }
-      },1000);
-    }
+qs('skipBtn').addEventListener('click',()=>nextVideo());
+qs('menuBtn').addEventListener('click',()=>qs('menuModal').style.display='flex');
+qs('closeMenu').addEventListener('click',()=>qs('menuModal').style.display='none');
 
-    async function rewardUser(){
-      const v=videos[idx];
-      const coins=v.coins||0;
-      const ref=doc(db,'users',user.uid);
-      const snap=await getDoc(ref);
-      let bal=snap.exists()?snap.data().balance||0:0;
-      bal+=coins;
-      await updateDoc(ref,{balance:bal});
-      qs('balAmt').innerText=bal;
-      rewarded=true;
-      toast(`+${coins} coins added`);
-    }
+qs('logoutBtn').addEventListener('click',async()=>{await signOut(auth);window.location.href='index.html';});
+</script>
+<script async src="https://www.youtube.com/iframe_api"></script>
 
-    function nextVideo(){
-      try{ if(ytPlayer && ytPlayer.stopVideo) ytPlayer.stopVideo(); }catch{}
-      clearInterval(countdownInterval);
-      playing=false; rewarded=false;
-      idx=(idx+1)%videos.length;
-      setTimeout(loadCurrent,500);
-    }
-
-    qs('skipBtn').addEventListener('click',()=>nextVideo());
-
-
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
-  import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc } 
-  from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
-
-  const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_PROJECT.firebaseapp.com",
-    projectId: "YOUR_PROJECT",
-    storageBucket: "YOUR_PROJECT.appspot.com",
-    messagingSenderId: "YOUR_SENDER_ID",
-    appId: "YOUR_APP_ID"
-  };
-    
-
-    // Referral redeem
-    qs('redeemBtn').addEventListener('click', async ()=>{
-      const code=qs('redeemCode').value.trim();
-      if(!code){toast('Enter referral code');return;}
-      const qSnap=await getDocs(collection(db,'users'));
-      let target=null;
-      qSnap.forEach(d=>{if(d.data().refCode===code)target=d;});
-      if(!target){toast('Invalid code');return;}
-      const ref=doc(db,'users',user.uid);
-      const snap=await getDoc(ref);
-      if(snap.exists() && snap.data().referredBy){toast('Already redeemed');return;}
-      await updateDoc(ref,{referredBy:code});
-      const tRef=doc(db,'users',target.id);
-      const tSnap=await getDoc(tRef);
-      if(tSnap.exists()){
-        const bal=(tSnap.data().balance||0)+100;
-        await updateDoc(tRef,{balance:bal});
-      }
-      toast('Referral applied ₦100 to referrer');
-    });
-
-    // Logout
-    qs('logoutBtn').addEventListener('click',async()=>{await signOut(auth);window.location.href='index.html';});
-
-    // Menu toggle
-    qs('menuBtn').addEventListener('click',()=>qs('menuModal').style.display='flex');
-    qs('closeMenu').addEventListener('click',()=>qs('menuModal').style.display='none');
-  </script>
-
-  <script async src="https://www.youtube.com/iframe_api"></script>
-</body>
-</html>
