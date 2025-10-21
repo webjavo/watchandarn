@@ -90,13 +90,14 @@ import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, o
 
 const firebaseConfig = {
   apiKey: "AIzaSyCzFqbBdIMucN6A7zE6US6aZziyp_3lMB0",
-  authDomain: "watchandarn.firebaseapp.com",
+  authDomain: "watchandarn.firebaseapp.com", // or watchandearn.firebaseapp.com if that’s your real domain
   projectId: "watchandarn",
-  storageBucket: "watchandarn.firebasestorage.app",
+  storageBucket: "watchandarn.appspot.com",
   messagingSenderId: "670181055241",
   appId: "1:670181055241:web:974eabbaff1c2cbf28d1d8",
   measurementId: "G-P1QGG9WV4R"
 };
+
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
@@ -112,6 +113,9 @@ function alertProfessional(msg){
   el.innerText=msg;document.body.appendChild(el);
   setTimeout(()=>el.remove(),2200);
 }
+
+  
+  
 
 /* ---- ADMIN LOGIN ---- */
 const ADMIN_USER='vmancompany@gmail.com', ADMIN_PASS='242777Aa#', ADMIN_PET='Dragon';
