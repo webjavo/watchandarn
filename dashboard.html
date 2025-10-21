@@ -98,14 +98,15 @@
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
 
     const firebaseConfig = {
-      apiKey: "AIzaSyCzFqbBdIMucN6A7zE6US6aZziyp_3lMB0",
-      authDomain: "watchandarn.firebaseapp.com",
-      projectId: "watchandarn",
-      storageBucket: "watchandarn.firebasestorage.app",
-      messagingSenderId: "670181055241",
-      appId: "1:670181055241:web:974eabbaff1c2cbf28d1d8",
-      measurementId: "G-P1QGG9WV4R"
-    };
+  apiKey: "AIzaSyCzFqbBdIMucN6A7zE6US6aZziyp_3lMB0",
+  authDomain: "watchandarn.firebaseapp.com", // or watchandearn.firebaseapp.com if that’s your real domain
+  projectId: "watchandarn",
+  storageBucket: "watchandarn.appspot.com",
+  messagingSenderId: "670181055241",
+  appId: "1:670181055241:web:974eabbaff1c2cbf28d1d8",
+  measurementId: "G-P1QGG9WV4R"
+};
+
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
