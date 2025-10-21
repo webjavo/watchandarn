@@ -80,16 +80,22 @@
   </div>
 
   <!-- Menu Modal -->
-  <div class="modal-backdrop" id="menuModal">
-    <div class="modal">
-      <h3>Menu</h3>
-      <div style="display:flex;flex-direction:column;gap:10px;margin-top:8px">
-        <button class="btn-ghost" id="referBtn">Refer a friend</button>
-        <button class="btn-ghost" id="logoutBtn">Logout</button>
-      </div>
-      <div style="text-align:right;margin-top:8px"><button class="btn-ghost" id="closeMenu">Close</button></div>
+<div class="modal-backdrop" id="menuModal">
+  <div class="modal">
+    <h3>Menu</h3>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-top:8px">
+      <button class="btn-ghost" id="referBtn">Refer a friend</button>
+      <button class="btn-ghost" id="consentBtn">Consent</button>
+      <button class="btn-ghost" id="privacyBtn">Privacy Policy</button>
+      <button class="btn-ghost" id="contactBtn">Contact us</button>
+      <button class="btn-ghost" id="logoutBtn">Logout</button>
+      <button class="btn-ghost" id="withdrawBtn">Withdraw</button>
+    </div>
+    <div style="text-align:right;margin-top:8px">
+      <button class="btn-ghost" id="closeMenu">Close</button>
     </div>
   </div>
+</div>
 
   <!-- Firebase SDK -->
   <script type="module">
@@ -111,7 +117,7 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-const qs = (id)=>document.getElementById(id);
+const qs = id => document.getElementById(id);
 function toast(msg){
   const el=document.createElement('div');
   el.style.position='fixed';el.style.left='50%';el.style.top='18%';
@@ -122,6 +128,8 @@ function toast(msg){
   setTimeout(()=>el.remove(),2000);
 }
 
+let user=null, videos=[], idx=0, ytPlayer=null, countdown=0, playing=false, rewarded=false, countdownInterval=null;
+
 onAuthStateChanged(auth, async (u)=>{
   if(!u){ window.location.href='index.html'; return; }
   user=u;
@@ -129,25 +137,29 @@ onAuthStateChanged(auth, async (u)=>{
   await loadVideos();
 });
 
+/* --------- Load user + referral --------- */
 async function loadUserData(){
   const ref=doc(db,'users',user.uid);
   const snap=await getDoc(ref);
   if(snap.exists()){
-    qs('balAmt').innerText=snap.data().balance||0;
-    qs('myRef').innerText=snap.data().refCode||user.uid.slice(0,6);
+    const data=snap.data();
+    qs('balAmt').innerText=data.balance||0;
+    qs('myRef').innerText=data.refCode||data.username?.slice(0,4)||user.uid.slice(0,4);
   }else{
-    await setDoc(ref,{balance:0,refCode:user.uid.slice(0,6)});
+    const uname=user.email.split('@')[0];
+    await setDoc(ref,{username:uname,balance:0,refCode:uname.slice(0,4)});
     qs('balAmt').innerText=0;
-    qs('myRef').innerText=user.uid.slice(0,6);
+    qs('myRef').innerText=uname.slice(0,4);
   }
 }
 
+/* --------- Load videos --------- */
 async function loadVideos(){
   const vRef=collection(db,'videos');
   const vSnap=await getDocs(vRef);
   videos=vSnap.docs.map(d=>d.data());
   if(videos.length===0){
-    qs('videoScreen').innerHTML='<div id="videoPoster" style="display:flex;align-items:center;justify-content:center;color:#fff;height:100%">No video available</div>';
+    qs('videoScreen').innerHTML='<div style="color:#fff;text-align:center;padding:40px 0">No video available</div>';
     return;
   }
   loadCurrent();
@@ -158,8 +170,7 @@ function extractYouTubeId(url){
   return m?m[1]:url;
 }
 
-let ytPlayer, idx=0, countdown=0, countdownInterval, playing=false, rewarded=false;
-
+/* --------- YouTube player logic --------- */
 function loadCurrent(){
   const v=videos[idx];
   if(!v){ toast('No more videos'); return; }
@@ -215,11 +226,21 @@ function nextVideo(){
   setTimeout(loadCurrent,500);
 }
 
+/* --------- Buttons --------- */
 qs('skipBtn').addEventListener('click',()=>nextVideo());
 qs('menuBtn').addEventListener('click',()=>qs('menuModal').style.display='flex');
 qs('closeMenu').addEventListener('click',()=>qs('menuModal').style.display='none');
-
+qs('withdrawBtn').addEventListener('click',()=>window.location.href='withdraw.html');
 qs('logoutBtn').addEventListener('click',async()=>{await signOut(auth);window.location.href='index.html';});
+qs('promoteBtn').addEventListener('click',()=>{
+  if(!videos[idx]) return toast('No video');
+  window.open(`https://wa.me/?text=${encodeURIComponent(videos[idx].url)}`,'_blank');
+});
+
+/* optional: refer/share actions */
+qs('shareRef')?.addEventListener('click',()=>{
+  const code=qs('myRef').innerText;
+  window.open(`https://wa.me/?text=Join Watch & Earn using my referral code: ${code}`,'_blank');
+});
 </script>
 <script async src="https://www.youtube.com/iframe_api"></script>
-
