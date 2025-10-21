@@ -88,15 +88,16 @@ body{margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial;background:var(-
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
 import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, onSnapshot, orderBy, query } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
-const firebaseConfig = {
+  const firebaseConfig = {
   apiKey: "AIzaSyCzFqbBdIMucN6A7zE6US6aZziyp_3lMB0",
-  authDomain: "watchandarn.firebaseapp.com", // or watchandearn.firebaseapp.com if that’s your real domain
+  authDomain: "watchandarn.firebaseapp.com",
   projectId: "watchandarn",
   storageBucket: "watchandarn.appspot.com",
   messagingSenderId: "670181055241",
   appId: "1:670181055241:web:974eabbaff1c2cbf28d1d8",
   measurementId: "G-P1QGG9WV4R"
 };
+
 
 
 const app = initializeApp(firebaseConfig);
