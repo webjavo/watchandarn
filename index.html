@@ -212,11 +212,16 @@ import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
          updatePassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
 import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
+type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
 const firebaseConfig = {
   apiKey: "AIzaSyCzFqbBdIMucN6A7zE6US6aZziyp_3lMB0",
   authDomain: "watchandarn.firebaseapp.com",
   projectId: "watchandarn",
-  storageBucket: "watchandarn.firebasestorage.app",
+  storageBucket: "watchandarn.appspot.com",
   messagingSenderId: "670181055241",
   appId: "1:670181055241:web:974eabbaff1c2cbf28d1d8",
   measurementId: "G-P1QGG9WV4R"
@@ -224,7 +229,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-const db   = getFirestore(app);
+const db = getFirestore(app);
 
 // --- Helpers ---
 function toast(msg){
