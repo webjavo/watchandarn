@@ -79,10 +79,11 @@
     <div class="footer-note">All activity is saved securely online.</div>
   </div>
 
-  <!-- Menu Modal -->
-<div class="modal-backdrop" id="menuModal">
+  <!-- Menu Modal (full) -->
+<div class="modal-backdrop" id="menuModal" style="display:none;align-items:center;justify-content:center;">
   <div class="modal">
     <h3>Menu</h3>
+
     <div style="display:flex;flex-direction:column;gap:10px;margin-top:8px">
       <button class="btn-ghost" id="referBtn">Refer a friend</button>
       <button class="btn-ghost" id="consentBtn">Consent</button>
@@ -91,11 +92,42 @@
       <button class="btn-ghost" id="logoutBtn">Logout</button>
       <button class="btn-ghost" id="withdrawBtn">Withdraw</button>
     </div>
+
     <div style="text-align:right;margin-top:8px">
       <button class="btn-ghost" id="closeMenu">Close</button>
     </div>
   </div>
 </div>
+
+
+  <!-- Refer Modal -->
+<div class="modal-backdrop" id="referModal" style="display:none;align-items:center;justify-content:center;">
+  <div class="modal">
+    <h3>Refer a friend</h3>
+    <div class="muted">Your referral code (copy/share): <strong id="showRef">----</strong></div>
+    <div style="margin-top:10px">
+      <input class="input" id="inputRef" placeholder="Enter referral to redeem"/>
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <button class="btn" id="refSend">Send</button>
+        <button class="btn-ghost" id="refCancel">Cancel</button>
+        <button class="btn-ghost" id="shareRefSmall">Share</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Consent Modal -->
+<div class="modal-backdrop" id="consentModal" style="display:none;align-items:center;justify-content:center;">
+  <div class="modal">
+    <h3>Consent</h3>
+    <div class="muted">Welcome to Watch and Earn. We store: <ol><li>Email address</li><li>Name</li><li>Channel link</li><li>Profile photo URL</li></ol></div>
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <button class="btn" id="agreeBtn">I agree</button>
+      <button class="btn-ghost" id="consentClose">Cancel</button>
+    </div>
+  </div>
+</div>
+  
 
   <!-- Firebase SDK -->
   <script type="module">
@@ -137,6 +169,114 @@ onAuthStateChanged(auth, async (u)=>{
   await loadVideos();
 });
 
+// ---------------- Missing menu handlers & referral/consent/contact fixes ----------------
+// Assumes: `user` variable (firebase user), `db` (Firestore), and helper qs() are already defined
+
+// small helper to show/hide modal/backdrop
+function showModal(id){ const e=qs(id); if(e) e.style.display='flex'; }
+function hideModal(id){ const e=qs(id); if(e) e.style.display='none'; }
+
+// Ensure menu open/close exist (id names used earlier)
+qs('menuBtn')?.addEventListener('click', ()=> showModal('menuModal'));
+qs('closeMenu')?.addEventListener('click', ()=> hideModal('menuModal'));
+
+// NAV buttons
+qs('withdrawBtn')?.addEventListener('click', ()=> {
+  hideModal('menuModal');
+  window.location.href = 'withdraw.html';
+});
+
+// logout already existed; re-attach to be safe
+qs('logoutBtn')?.addEventListener('click', async ()=>{
+  try{ await signOut(auth); window.location.href='index.html'; }
+  catch(e){ toast('Logout error'); }
+});
+
+// Contact us -> open WhatsApp to your number
+qs('contactBtn')?.addEventListener('click', ()=>{
+  hideModal('menuModal');
+  const msg = encodeURIComponent('Hello, I need help with Watch & Earn. My email: ' + (user?.email || ''));
+  // direct to your number
+  window.open('https://wa.me/2347031935351?text=' + msg, '_blank');
+});
+
+// Privacy -> go to privacy.html
+qs('privacyBtn')?.addEventListener('click', ()=>{
+  hideModal('menuModal');
+  window.location.href = 'privacy.html';
+});
+
+// Consent -> open consent modal
+qs('consentBtn')?.addEventListener('click', ()=>{
+  hideModal('menuModal');
+  showModal('consentModal');
+});
+qs('consentClose')?.addEventListener('click', ()=> hideModal('consentModal'));
+
+// Agree button: write consent to Firestore under users/{uid}.consent = true
+qs('agreeBtn')?.addEventListener('click', async ()=>{
+  try{
+    if(!user) return toast('Not signed in');
+    await updateDoc(doc(db,'users',user.uid), { consent: true });
+    toast('Consent saved');
+    hideModal('consentModal');
+  }catch(err){ console.error(err); toast('Consent failed'); }
+});
+
+// ---------------- Referral tab handlers ----------------
+// Open refer modal from menu
+qs('referBtn')?.addEventListener('click', ()=>{
+  hideModal('menuModal');
+  // ensure referral code is visible (username slice first 4)
+  (async ()=>{
+    try{
+      if(!user) return toast('Not signed in');
+      const snap = await getDoc(doc(db,'users',user.uid));
+      let refCode = user.uid.slice(0,4);
+      if(snap.exists()){
+        const d = snap.data();
+        if(d.username) refCode = String(d.username).slice(0,4);
+        else if(d.refCode) refCode = d.refCode;
+      }
+      qs('showRef').innerText = refCode;
+      showModal('referModal');
+    }catch(e){ console.error(e); toast('Could not load ref'); }
+  })();
+});
+
+// Close/refCancel
+qs('refCancel')?.addEventListener('click', ()=> hideModal('referModal'));
+
+// Share referral button (small)
+qs('shareRefSmall')?.addEventListener('click', ()=>{
+  const code = qs('showRef')?.innerText || '';
+  if(!code) return toast('No referral code');
+  const msg = encodeURIComponent('Join Watch & Earn using my referral code: ' + code);
+  window.open('https://wa.me/?text=' + msg, '_blank');
+});
+
+// Redeem referral (refSend) -- you previously had redeem logic; here we attempt to credit the referrer
+qs('refSend')?.addEventListener('click', async ()=>{
+  const code = qs('inputRef')?.value.trim();
+  if(!code) return toast('Enter code');
+  try{
+    // find user with refCode == code
+    const qSnap = await getDocs(collection(db,'users'));
+    let targetDoc = null;
+    qSnap.forEach(d => { if(d.data().refCode === code) targetDoc = { id: d.id, data: d.data() }; });
+    if(!targetDoc){ toast('Invalid code'); return; }
+    // ensure current user hasn't redeemed before
+    const curSnap = await getDoc(doc(db,'users',user.uid));
+    if(curSnap.exists() && curSnap.data().referredBy){ toast('Already redeemed'); return; }
+    // set referredBy for current user and credit referrer ₦100
+    await updateDoc(doc(db,'users',user.uid), { referredBy: code });
+    await updateDoc(doc(db,'users',targetDoc.id), { balance: (targetDoc.data.balance||0) + 100 });
+    toast('Referral applied; referrer +₦100');
+    hideModal('referModal');
+  }catch(err){ console.error(err); toast('Redeem failed'); }
+});
+    
+    
 /* --------- Load user + referral --------- */
 async function loadUserData(){
   const ref=doc(db,'users',user.uid);
