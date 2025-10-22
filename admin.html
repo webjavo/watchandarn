@@ -86,9 +86,13 @@ body{margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial;background:var(-
 <!-- Firebase -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, onSnapshot, orderBy, query } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+import { 
+  getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, 
+  onSnapshot, orderBy, query 
+} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
-  const firebaseConfig = {
+// ✅ Fixed Firebase config (no broken line!)
+const firebaseConfig = {
   apiKey: "AIzaSyCzFqbBdIMucN6A7zE6US6aZziyp_3lMB0",
   authDomain: "watchandarn.firebaseapp.com",
   projectId: "watchandarn",
@@ -98,124 +102,99 @@ import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, o
   measurementId: "G-P1QGG9WV4R"
 };
 
-
-
+// Init Firebase + Firestore
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-function qs(id){return document.getElementById(id);}
-function alertProfessional(msg){
+// Helpers
+function qs(id){ return document.getElementById(id); }
+function toast(msg){
   const el=document.createElement('div');
-  el.style.position='fixed';el.style.left='50%';el.style.top='15%';
-  el.style.transform='translateX(-50%)';el.style.zIndex=9999;
-  el.style.background='linear-gradient(90deg,#fff7f9,#fff)';
-  el.style.padding='12px 18px';el.style.borderRadius='10px';
-  el.style.boxShadow='0 10px 30px rgba(0,0,0,0.08)';
-  el.innerText=msg;document.body.appendChild(el);
-  setTimeout(()=>el.remove(),2200);
+  el.textContent=msg;
+  el.style.position='fixed';
+  el.style.bottom='20px';
+  el.style.left='50%';
+  el.style.transform='translateX(-50%)';
+  el.style.background='#1e6fdb';
+  el.style.color='#fff';
+  el.style.padding='10px 16px';
+  el.style.borderRadius='8px';
+  el.style.zIndex='9999';
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(),2000);
 }
 
-  
-  
-
-/* ---- ADMIN LOGIN ---- */
-const ADMIN_USER='vmancompany@gmail.com', ADMIN_PASS='242777Aa#', ADMIN_PET='Dragon';
+// --- Simple Admin Login (local only) ---
 qs('ad_login').addEventListener('click',()=>{
-  const u=qs('ad_user').value.trim(),p=qs('ad_pass').value,pet=qs('ad_pet').value.trim();
-  if(u===ADMIN_USER && p===ADMIN_PASS && pet===ADMIN_PET){
+  const u=qs('ad_user').value.trim();
+  const p=qs('ad_pass').value.trim();
+  const pet=qs('ad_pet').value.trim();
+  if(u==='admin' && p==='242777Aa#' && pet==='hero'){   // <-- you can change these
     qs('loginPanel').style.display='none';
     qs('adminArea').style.display='block';
-    loadVideos(); loadUsers(); loadWithdrawals();
-  }else alertProfessional('Incorrect credentials');
+  }else{
+    toast('Wrong credentials');
+  }
 });
+qs('ad_cancel').addEventListener('click',()=>{qs('ad_user').value='';qs('ad_pass').value='';qs('ad_pet').value='';});
 
-/* ---- TAB SWITCH ---- */
-const tabs={tabVideos:'videosTab',tabUsers:'usersTab',tabWithdraw:'withdrawTab'};
-Object.keys(tabs).forEach(id=>{
+// --- Tab navigation ---
+const tabs=['tabVideos','tabUsers','tabWithdraw'];
+tabs.forEach(id=>{
   qs(id).addEventListener('click',()=>{
-    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-    document.getElementById(id).classList.add('active');
-    Object.values(tabs).forEach(v=>qs(v).style.display='none');
-    qs(tabs[id]).style.display='block';
+    tabs.forEach(t=>qs(t).classList.remove('active'));
+    qs(id).classList.add('active');
+    qs('videosTab').style.display=(id==='tabVideos')?'block':'none';
+    qs('usersTab').style.display=(id==='tabUsers')?'block':'none';
+    qs('withdrawTab').style.display=(id==='tabWithdraw')?'block':'none';
   });
 });
 
-/* ---- LOAD VIDEOS ---- */
-async function loadVideos(){
-  const tbody=qs('vid_table').querySelector('tbody');
+// --- Video Management ---
+const vidCol = collection(db,'videos');
+
+// Add video
+qs('vid_add').addEventListener('click', async ()=>{
+  const url = qs('vid_url').value.trim();
+  const secs = Number(qs('vid_seconds').value.trim());
+  const coins = Number(qs('vid_coins').value.trim());
+  if(!url || !secs || !coins){ toast('Fill all fields'); return; }
+  try{
+    await addDoc(vidCol, { url, seconds:secs, coins, createdAt: Date.now() });
+    toast('Video added');
+    qs('vid_url').value=''; qs('vid_seconds').value=''; qs('vid_coins').value='';
+  }catch(e){
+    console.error(e); toast('Failed to add video');
+  }
+});
+
+// Load video list in real-time
+const q = query(vidCol, orderBy('createdAt','desc'));
+onSnapshot(q, (snap)=>{
+  const tbody = qs('vid_table').querySelector('tbody');
   tbody.innerHTML='';
-  const q=query(collection(db,'videos'));
-  const snap=await getDocs(q);
-  snap.forEach(docu=>{
-    const v=docu.data();
-    const id=docu.id;
-    const vidId=extractYouTubeId(v.url);
-    const thumb=`https://img.youtube.com/vi/${vidId}/0.jpg`;
-    const tr=document.createElement('tr');
-    tr.innerHTML=`
-      <td><img src="${thumb}" class="thumb"></td>
-      <td>${v.seconds}</td>
-      <td>${v.coins}</td>
-      <td>
-        <button class='btn-ghost' onclick='removeVideo("${id}")'>Remove</button>
-      </td>`;
+  snap.forEach(docSnap=>{
+    const v = docSnap.data();
+    const tr = document.createElement('tr');
+    const thumb = `https://img.youtube.com/vi/${extractID(v.url)}/0.jpg`;
+    tr.innerHTML = `
+      <td><img class="thumb" src="${thumb}" alt=""></td>
+      <td>${v.seconds}s</td>
+      <td>₦${v.coins}</td>
+      <td><button class="btn-ghost delBtn" data-id="${docSnap.id}">Delete</button></td>`;
     tbody.appendChild(tr);
   });
-}
-async function removeVideo(id){
-  await deleteDoc(doc(db,'videos',id));
-  alertProfessional('Video removed'); loadVideos();
-}
-qs('vid_add').addEventListener('click',async()=>{
-  const url=qs('vid_url').value.trim();
-  const seconds=Number(qs('vid_seconds').value||0);
-  const coins=Number(qs('vid_coins').value||0);
-  if(!url||seconds<=0||coins<=0){alertProfessional('Invalid');return;}
-  await addDoc(collection(db,'videos'),{url,seconds,coins});
-  alertProfessional('Video added'); qs('vid_url').value='';qs('vid_seconds').value='';qs('vid_coins').value='';
-  loadVideos();
+  document.querySelectorAll('.delBtn').forEach(btn=>{
+    btn.onclick=async ()=>{
+      try{ await deleteDoc(doc(db,'videos',btn.dataset.id)); toast('Deleted'); }
+      catch(e){ toast('Delete failed'); }
+    };
+  });
 });
-function extractYouTubeId(url){const m=url.match(/(?:v=|\/)([0-9A-Za-z_-]{11})/);return m?m[1]:'';}
 
-/* ---- USERS ---- */
-async function loadUsers(){
-  const tbody=qs('usersTable').querySelector('tbody'); tbody.innerHTML='';
-  const q=query(collection(db,'users'));
-  const snap=await getDocs(q);
-  snap.forEach(d=>{
-    const u=d.data(); const id=d.id;
-    const tr=document.createElement('tr');
-    tr.innerHTML=`<td>${u.email}</td><td>${u.username}</td><td>₦${u.balance||0}</td>
-    <td>${u.disabled?'Disabled':'Active'}</td>
-    <td><button class='btn-ghost' onclick='toggleUser("${id}",${!u.disabled})'>Toggle</button></td>`;
-    tbody.appendChild(tr);
-  });
+// Extract YouTube ID
+function extractID(url){
+  const match = url.match(/(?:youtu\.be\/|v=)([\w-]+)/);
+  return match ? match[1] : '';
 }
-async function toggleUser(id,val){
-  await updateDoc(doc(db,'users',id),{disabled:val});
-  alertProfessional('User updated'); loadUsers();
-}
-
-    
-
-/* ---- WITHDRAWALS ---- */
-async function loadWithdrawals(){
-  const tbody=qs('withdrawTable').querySelector('tbody'); tbody.innerHTML='';
-  const q=query(collection(db,'withdrawals'),orderBy('time','desc'));
-  const snap=await getDocs(q);
-  snap.forEach(d=>{
-    const w=d.data(),id=d.id;
-    const tr=document.createElement('tr');
-    tr.innerHTML=`<td>${w.email}</td><td>₦${w.amount}</td><td>${w.code}</td><td>${new Date(w.time).toLocaleString()}</td>
-    <td>
-      <button class='btn' onclick='markPaid("${id}")'>Paid</button>
-      <button class='btn-ghost' onclick='deleteWithdraw("${id}")'>Delete</button>
-    </td>`;
-    tbody.appendChild(tr);
-  });
-}
-async function markPaid(id){ await updateDoc(doc(db,'withdrawals',id),{status:'paid'}); alertProfessional('Marked as paid'); loadWithdrawals(); }
-async function deleteWithdraw(id){ await deleteDoc(doc(db,'withdrawals',id)); alertProfessional('Deleted'); loadWithdrawals(); }
 </script>
-</body>
-</html>
