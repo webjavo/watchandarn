@@ -85,13 +85,15 @@ body{margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial;background:var(-
 
 <!-- Firebase -->
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
 import { 
-  getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, 
-  onSnapshot, orderBy, query 
+  initializeApp 
+} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
+import { 
+  getFirestore, collection, addDoc, getDocs, deleteDoc, 
+  doc, updateDoc, onSnapshot, orderBy, query 
 } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
-// ✅ Fixed Firebase config (no broken line!)
+// --- Firebase init ---
 const firebaseConfig = {
   apiKey: "AIzaSyCzFqbBdIMucN6A7zE6US6aZziyp_3lMB0",
   authDomain: "watchandarn.firebaseapp.com",
@@ -101,59 +103,60 @@ const firebaseConfig = {
   appId: "1:670181055241:web:974eabbaff1c2cbf28d1d8",
   measurementId: "G-P1QGG9WV4R"
 };
-
-// Init Firebase + Firestore
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// Helpers
-function qs(id){ return document.getElementById(id); }
+// --- Helper ---
+function qs(id){return document.getElementById(id);}
 function toast(msg){
-  const el=document.createElement('div');
-  el.textContent=msg;
-  el.style.position='fixed';
-  el.style.bottom='20px';
-  el.style.left='50%';
-  el.style.transform='translateX(-50%)';
-  el.style.background='#1e6fdb';
-  el.style.color='#fff';
-  el.style.padding='10px 16px';
-  el.style.borderRadius='8px';
-  el.style.zIndex='9999';
+  const el = document.createElement('div');
+  el.style.position='fixed';el.style.left='50%';el.style.top='20%';
+  el.style.transform='translateX(-50%)';el.style.background='#fff';
+  el.style.padding='10px 18px';el.style.borderRadius='8px';
+  el.style.boxShadow='0 10px 20px rgba(0,0,0,0.1)';
+  el.style.zIndex='9999';el.innerText=msg;
   document.body.appendChild(el);
-  setTimeout(()=>el.remove(),2000);
+  setTimeout(()=>el.remove(),2200);
 }
 
-// --- Simple Admin Login (local only) ---
-qs('ad_login').addEventListener('click',()=>{
-  const u=qs('ad_user').value.trim();
-  const p=qs('ad_pass').value.trim();
-  const pet=qs('ad_pet').value.trim();
-  if(u==='vmanstudios' && p==='242777Aa#' && pet==='Dragon'){   // <-- you can change these
+// --- Login Control ---
+const ADMIN_USER='vmanstudios', ADMIN_PASS='242777Aa#', ADMIN_PET='Dragon';
+qs('ad_login').addEventListener('click', ()=>{
+  const u=qs('ad_user').value.trim(),
+        p=qs('ad_pass').value.trim(),
+        pet=qs('ad_pet').value.trim();
+  if(u===ADMIN_USER && p===ADMIN_PASS && pet===ADMIN_PET){
     qs('loginPanel').style.display='none';
     qs('adminArea').style.display='block';
-  }else{
-    toast('Wrong credentials');
-  }
+    loadVideos();
+    loadUsers();
+    loadWithdrawals();
+  } else toast('Admin credentials wrong');
 });
-qs('ad_cancel').addEventListener('click',()=>{qs('ad_user').value='';qs('ad_pass').value='';qs('ad_pet').value='';});
 
-// --- Tab navigation ---
-const tabs=['tabVideos','tabUsers','tabWithdraw'];
-tabs.forEach(id=>{
-  qs(id).addEventListener('click',()=>{
-    tabs.forEach(t=>qs(t).classList.remove('active'));
-    qs(id).classList.add('active');
-    qs('videosTab').style.display=(id==='tabVideos')?'block':'none';
-    qs('usersTab').style.display=(id==='tabUsers')?'block':'none';
-    qs('withdrawTab').style.display=(id==='tabWithdraw')?'block':'none';
-  });
-});
+// --- Tabs Navigation ---
+const tabVideos = qs('tabVideos'),
+      tabUsers = qs('tabUsers'),
+      tabWithdraw = qs('tabWithdraw'),
+      videosTab = qs('videosTab'),
+      usersTab = qs('usersTab'),
+      withdrawTab = qs('withdrawTab');
+
+tabVideos.onclick = ()=>{activateTab('videos')};
+tabUsers.onclick = ()=>{activateTab('users')};
+tabWithdraw.onclick = ()=>{activateTab('withdraw')};
+
+function activateTab(name){
+  [tabVideos,tabUsers,tabWithdraw].forEach(t=>t.classList.remove('active'));
+  [videosTab,usersTab,withdrawTab].forEach(v=>v.style.display='none');
+  if(name==='videos'){tabVideos.classList.add('active');videosTab.style.display='block';}
+  if(name==='users'){tabUsers.classList.add('active');usersTab.style.display='block';}
+  if(name==='withdraw'){tabWithdraw.classList.add('active');withdrawTab.style.display='block';}
+}
 
 // --- Video Management ---
 const vidCol = collection(db,'videos');
 
-// Add video
 qs('vid_add').addEventListener('click', async ()=>{
   const url = qs('vid_url').value.trim();
   const secs = Number(qs('vid_seconds').value.trim());
@@ -168,9 +171,9 @@ qs('vid_add').addEventListener('click', async ()=>{
   }
 });
 
-// Load video list in real-time
-const q = query(vidCol, orderBy('createdAt','desc'));
-onSnapshot(q, (snap)=>{
+// Real-time video list
+const qv = query(vidCol, orderBy('createdAt','desc'));
+onSnapshot(qv, (snap)=>{
   const tbody = qs('vid_table').querySelector('tbody');
   tbody.innerHTML='';
   snap.forEach(docSnap=>{
@@ -192,46 +195,64 @@ onSnapshot(q, (snap)=>{
   });
 });
 
-// Extract YouTube ID
 function extractID(url){
   const match = url.match(/(?:youtu\.be\/|v=)([\w-]+)/);
   return match ? match[1] : '';
 }
 
-// Load users from Firestore
-async function loadUsers() {
-  const tbody = document.getElementById('usersTable').querySelector('tbody');
-  tbody.innerHTML = '';
-  try {
-    const qSnap = await getDocs(collection(db, 'users'));
-    qSnap.forEach((docSnap) => {
-      const u = docSnap.data();
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${u.email || '-'}</td>
-        <td>${u.username || '-'}</td>
-        <td>₦${(u.balance || 0).toFixed(0)}</td>
-        <td>${u.disabled ? 'Disabled' : 'Active'}</td>
-        <td><button class="btn-ghost" onclick="toggleDisable('${docSnap.id}', ${!u.disabled})">Toggle</button></td>
-      `;
+// --- Load Users ---
+async function loadUsers(){
+  const tbody = qs('usersTable').querySelector('tbody');
+  tbody.innerHTML = '<tr><td colspan="5">Loading...</td></tr>';
+  try{
+    const qSnap = await getDocs(collection(db,'users'));
+    tbody.innerHTML='';
+    if(qSnap.empty){tbody.innerHTML='<tr><td colspan="5">No users found.</td></tr>';return;}
+    qSnap.forEach(docSnap=>{
+      const u=docSnap.data();
+      const tr=document.createElement('tr');
+      tr.innerHTML=`
+        <td>${u.email||'-'}</td>
+        <td>${u.username||'-'}</td>
+        <td>₦${(u.balance||0).toFixed(0)}</td>
+        <td>${u.disabled?'Disabled':'Active'}</td>
+        <td><button class="btn-ghost" onclick="toggleDisable('${docSnap.id}',${!u.disabled})">Toggle</button></td>`;
       tbody.appendChild(tr);
     });
-  } catch (err) {
-    alert('Failed to load users: ' + err.message);
-    console.error(err);
-  }
+  }catch(e){toast('Failed to load users');console.error(e);}
 }
 
-// Toggle disable user
-async function toggleDisable(uid, disable) {
-  try {
-    const userRef = doc(db, 'users', uid);
-    await updateDoc(userRef, { disabled: disable });
+window.toggleDisable = async (uid,disable)=>{
+  try{
+    const ref=doc(db,'users',uid);
+    await updateDoc(ref,{disabled:disable});
+    toast('User updated');
     loadUsers();
-  } catch (err) {
-    alert('Error updating user: ' + err.message);
-  }
-}
+  }catch(e){toast('Error');}
+};
 
-  
+// --- Withdraw Requests (new) ---
+const withdrawCol = collection(db,'withdrawals');
+const qw = query(withdrawCol, orderBy('time','desc'));
+onSnapshot(qw, (snap)=>{
+  const tbody = qs('withdrawTable').querySelector('tbody');
+  tbody.innerHTML='';
+  if(snap.empty){tbody.innerHTML='<tr><td colspan="5">No withdrawals</td></tr>';return;}
+  snap.forEach(docSnap=>{
+    const w=docSnap.data();
+    const tr=document.createElement('tr');
+    tr.innerHTML=`
+      <td>${w.userEmail||'-'}</td>
+      <td>₦${w.amount||0}</td>
+      <td>${w.code||'-'}</td>
+      <td>${new Date(w.time).toLocaleString()}</td>
+      <td><button class="btn-ghost" onclick="deleteWithdraw('${docSnap.id}')">Delete</button></td>`;
+    tbody.appendChild(tr);
+  });
+});
+
+window.deleteWithdraw = async (id)=>{
+  try{await deleteDoc(doc(db,'withdrawals',id));toast('Deleted');}
+  catch(e){toast('Delete failed');}
+};
 </script>
