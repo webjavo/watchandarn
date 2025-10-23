@@ -197,4 +197,40 @@ function extractID(url){
   const match = url.match(/(?:youtu\.be\/|v=)([\w-]+)/);
   return match ? match[1] : '';
 }
+
+  // Load users from Firestore instead of localStorage
+async function loadUsers() {
+  const tbody = document.getElementById('usersTable').querySelector('tbody');
+  tbody.innerHTML = '';
+  try {
+    const qSnap = await getDocs(collection(db, 'users'));
+    qSnap.forEach((docSnap) => {
+      const u = docSnap.data();
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${u.email || '-'}</td>
+        <td>${u.username || '-'}</td>
+        <td>₦${(u.balance || 0).toFixed(0)}</td>
+        <td>${u.disabled ? 'Disabled' : 'Active'}</td>
+        <td><button class="btn-ghost" onclick="toggleDisable('${docSnap.id}', ${u.disabled ? 'false' : 'true'})">Toggle</button></td>
+      `;
+      tbody.appendChild(tr);
+    });
+  } catch (err) {
+    alert('Failed to load users: ' + err.message);
+    console.error(err);
+  }
+}
+
+// Toggle user active/disabled status
+async function toggleDisable(uid, disable) {
+  try {
+    const userRef = doc(db, 'users', uid);
+    await updateDoc(userRef, { disabled: disable });
+    loadUsers();
+  } catch (err) {
+    alert('Error updating user: ' + err.message);
+  }
+}
+  
 </script>
