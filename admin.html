@@ -198,7 +198,7 @@ function extractID(url){
   return match ? match[1] : '';
 }
 
-  // Load users from Firestore instead of localStorage
+// Load users from Firestore
 async function loadUsers() {
   const tbody = document.getElementById('usersTable').querySelector('tbody');
   tbody.innerHTML = '';
@@ -212,7 +212,7 @@ async function loadUsers() {
         <td>${u.username || '-'}</td>
         <td>₦${(u.balance || 0).toFixed(0)}</td>
         <td>${u.disabled ? 'Disabled' : 'Active'}</td>
-        <td><button class="btn-ghost" onclick="toggleDisable('${docSnap.id}', ${u.disabled ? 'false' : 'true'})">Toggle</button></td>
+        <td><button class="btn-ghost" onclick="toggleDisable('${docSnap.id}', ${!u.disabled})">Toggle</button></td>
       `;
       tbody.appendChild(tr);
     });
@@ -222,7 +222,7 @@ async function loadUsers() {
   }
 }
 
-// Toggle user active/disabled status
+// Toggle disable user
 async function toggleDisable(uid, disable) {
   try {
     const userRef = doc(db, 'users', uid);
@@ -232,5 +232,6 @@ async function toggleDisable(uid, disable) {
     alert('Error updating user: ' + err.message);
   }
 }
+
   
 </script>
