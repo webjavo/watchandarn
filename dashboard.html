@@ -223,6 +223,12 @@ qs('agreeBtn')?.addEventListener('click', async ()=>{
   }catch(err){ console.error(err); toast('Consent failed'); }
 });
 
+document.getElementById('withdrawBtn').addEventListener('click', function(){
+  window.location.href = 'withdraw.html';
+});
+    
+    
+    
 // ---------------- Referral tab handlers ----------------
 // Open refer modal from menu
 qs('referBtn')?.addEventListener('click', ()=>{
@@ -365,6 +371,58 @@ function nextVideo(){
   idx=(idx+1)%videos.length;
   setTimeout(loadCurrent,500);
 }
+
+
+function onPlayerStateChange(event){
+  const state = event.data;
+  if(state === YT.PlayerState.PLAYING){
+    playing = true;
+    startCountdown();
+  } else if(
+    state === YT.PlayerState.PAUSED || 
+    state === YT.PlayerState.BUFFERING || 
+    state === YT.PlayerState.ENDED
+  ){
+    playing = false;
+    clearInterval(countdownInterval);
+  }
+
+  // ✅ when finished playing, reward once
+  if(state === YT.PlayerState.ENDED && !rewarded){
+    rewardUser();
+    nextVideo();
+  }
+}
+
+function rewardUser(){
+  try{
+    // read videos from local storage
+    const arr = JSON.parse(localStorage.getItem('wa_videos') || '[]');
+    const v = arr[idx] || {};
+    const coins = Number(v.coins || 0);
+
+    // get users
+    const users = JSON.parse(localStorage.getItem('wa_users') || '{}');
+    const current = localStorage.getItem('wa_current');
+    let user = users[current];
+
+    if(!user) return alertProfessional('User not found');
+    user.balance = (user.balance || 0) + coins;
+
+    users[current] = user;
+    localStorage.setItem('wa_users', JSON.stringify(users));
+
+    // update balance display
+    document.getElementById('balAmt').innerText = user.balance.toFixed(0);
+
+    rewarded = true;
+    alertProfessional('+' + coins + ' coins added!');
+  }catch(e){
+    console.error(e);
+    alertProfessional('Error updating balance');
+  }
+     }
+    
 
 /* --------- Buttons --------- */
 qs('skipBtn').addEventListener('click',()=>nextVideo());
