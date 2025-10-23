@@ -49,8 +49,9 @@ body{margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial;background:var(-
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
-import { getFirestore, collection, addDoc, getDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
+// --- Firebase Config ---
 const firebaseConfig = {
   apiKey: "AIzaSyCzFqbBdIMucN6A7zE6US6aZziyp_3lMB0",
   authDomain: "watchandarn.firebaseapp.com",
@@ -61,58 +62,68 @@ const firebaseConfig = {
   measurementId: "G-P1QGG9WV4R"
 };
 
-
-
+// --- Initialize ---
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 function qs(id){return document.getElementById(id);}
-function alertProfessional(msg){
-  const el=document.createElement('div');
-  el.style.position='fixed';el.style.left='50%';el.style.top='18%';el.style.transform='translateX(-50%)';el.style.zIndex=9999;
-  el.style.background='linear-gradient(90deg,#fff7f9,#fff)';el.style.padding='12px 18px';el.style.borderRadius='10px';el.style.boxShadow='0 10px 30px rgba(0,0,0,0.08)';
-  el.innerText=msg;document.body.appendChild(el);setTimeout(()=>el.remove(),2200);
-}
 
-const currentEmail = localStorage.getItem('wa_current');
-if(!currentEmail){location.href='index.html';}
+const current = localStorage.getItem('wa_current');
+if(!current){ location.href='index.html'; }
 let users = JSON.parse(localStorage.getItem('wa_users')||'{}');
-let user = users[currentEmail];
-if(!user){location.href='index.html';}
+let user = users[current];
+if(!user){ location.href='index.html'; }
+
 qs('avail').innerText = (user.balance||0).toFixed(0);
 
-qs('cancelBtn').addEventListener('click',()=>location.href='dashboard.html');
-
-qs('sendBtn').addEventListener('click',async()=>{
+qs('cancelBtn').addEventListener('click', function(){ location.href='dashboard.html' });
+qs('sendBtn').addEventListener('click', async function(){
   let amt = Number(qs('amount').value||0);
-  if(isNaN(amt)||amt<5000){alertProfessional('Minimum ₦5000');return;}
-  if(amt>10000){alertProfessional('Maximum ₦10000');return;}
-  if((user.balance||0)<amt){alertProfessional('Insufficient balance');return;}
+  if(isNaN(amt) || amt < 5000){ alertProfessional('Minimum withdrawal is ₦5000'); return; }
+  if(amt > 10000){ alertProfessional('Maximum ₦10000 per request'); return; }
+  if((user.balance||0) < amt){ alertProfessional('Insufficient balance'); return; }
 
-  const code = 'WE-'+Math.random().toString(36).substr(2,6).toUpperCase();
+  const codes = ["WE-₦hero1001#🔻🔺","WE-₦hero1002@🔺⭐️","WE-₦hero1003$⭐️❇️","WE-₦hero1004%❇️✨"];
+  const code = codes[Math.floor(Math.random() * codes.length)];
+
+  // deduct balance
   user.balance -= amt;
-  users[currentEmail]=user;
-  localStorage.setItem('wa_users',JSON.stringify(users));
-  qs('avail').innerText=user.balance.toFixed(0);
+  users[current] = user;
+  localStorage.setItem('wa_users', JSON.stringify(users));
+  qs('avail').innerText = user.balance.toFixed(0);
 
-  const data = {
-    email: currentEmail,
-    amount: amt,
-    code: code,
-    time: Date.now(),
-    status: 'pending'
-  };
-  await addDoc(collection(db,'withdrawals'),data);
+  // ✅ SAVE TO FIRESTORE so admin sees it
+  try {
+    await addDoc(collection(db, "withdrawals"), {
+      userEmail: user.email,
+      username: user.username || '',
+      amount: amt,
+      code: code,
+      time: Date.now()
+    });
+  } catch (err) {
+    console.error('Firestore save failed', err);
+  }
 
-  qs('succText').innerText='₦'+amt+' request sent. Code: '+code;
-  qs('succModal').style.display='flex';
-  qs('succOk').onclick=()=>{
-    qs('succModal').style.display='none';
-    const msg = encodeURIComponent('I just withdrew ₦'+amt+' | Code: '+code);
-    window.open('https://wa.me/2347031935351?text='+msg,'_blank');
-    location.href='dashboard.html';
-  };
+  // ✅ Open WhatsApp
+  const msg = encodeURIComponent(`I withdrew ₦${amt} using code ${code}`);
+  window.open('https://wa.me/2347031935351?text='+msg, '_blank');
+  alertProfessional('Withdrawal request sent!');
 });
+
+function alertProfessional(msg){
+  const el=document.createElement('div');
+  el.style.position='fixed';
+  el.style.left='50%';
+  el.style.top='18%';
+  el.style.transform='translateX(-50%)';
+  el.style.background='linear-gradient(90deg,#fff7f9,#fff)';
+  el.style.padding='12px 18px';
+  el.style.borderRadius='10px';
+  el.style.boxShadow='0 10px 30px rgba(0,0,0,0.08)';
+  el.style.zIndex=9999;
+  el.innerText=msg;
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(),2200);
+}
 </script>
-</body>
-</html>
