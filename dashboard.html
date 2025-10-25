@@ -576,125 +576,313 @@ function nextVideo(){
   clearInterval(countdownInterval);
   playing = false; rewarded = false;
   idx = (idx + 1) % videos.length;
-  setTimeout(loadCurrent, 500);
+  setTimeout(loadCurrent, 500);<script type="module">
+/* Full fixed dashboard script — paste into dashboard.html (replace any other dashboard scripts) */
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+import {
+  getFirestore, doc, getDoc, setDoc, updateDoc, collection, getDocs
+} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+
+/* ---------- Firebase config ---------- */
+const firebaseConfig = {
+  apiKey: "AIzaSyCzFqbBdIMucN6A7zE6US6aZziyp_3lMB0",
+  authDomain: "watchandarn.firebaseapp.com",
+  projectId: "watchandarn",
+  storageBucket: "watchandarn.appspot.com",
+  messagingSenderId: "670181055241",
+  appId: "1:670181055241:web:974eabbaff1c2cbf28d1d8",
+  measurementId: "G-P1QGG9WV4R"
+};
+
+/* ---------- Init ---------- */
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+/* ---------- Helpers ---------- */
+const qs = id => document.getElementById(id);
+function toast(msg){
+  const el = document.createElement('div');
+  el.style.position='fixed';
+  el.style.left='50%';
+  el.style.top='18%';
+  el.style.transform='translateX(-50%)';
+  el.style.background='#fff';
+  el.style.padding='10px 16px';
+  el.style.borderRadius='10px';
+  el.style.boxShadow='0 8px 30px rgba(0,0,0,0.12)';
+  el.style.zIndex='9999';
+  el.innerText = msg;
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(),2000);
+}
+function showModal(id){ const e = qs(id); if(e) e.style.display = 'flex'; }
+function hideModal(id){ const e = qs(id); if(e) e.style.display = 'none'; }
+
+/* safeAdd — attach when element exists */
+function safeAdd(id, evt, fn){
+  const el = qs(id);
+  if(el) el.addEventListener(evt, fn);
 }
 
-/* ---------- Menu & UI handlers (attach after functions exist) ---------- */
-/* open/close menu */
-safeAdd('menuBtn','click', ()=> showModal('menuModal'));
-safeAdd('closeMenu','click', ()=> hideModal('menuModal'));
+/* ---------- State ---------- */
+let user = null;
+let videos = [];
+let idx = 0;
+let ytPlayer = null;
+let countdown = 0;
+let countdownInterval = null;
+let playing = false;
+let rewarded = false;
 
-/* withdraw redirect */
-safeAdd('withdrawBtn','click', ()=> { hideModal('menuModal'); window.location.href = 'withdraw.html'; });
+/* ---------- Ensure script runs after DOM is ready ---------- */
+document.addEventListener('DOMContentLoaded', () => {
 
-/* logout */
-safeAdd('logoutBtn','click', async ()=> {
-  try{ await signOut(auth); window.location.href = 'index.html'; }
-  catch(e){ toast('Logout failed'); }
-});
-
-/* contact -> WhatsApp */
-safeAdd('contactBtn','click', ()=> {
-  hideModal('menuModal');
-  const msg = encodeURIComponent('Hello, I need help with Watch & Earn. My email: ' + (user?.email || ''));
-  window.open('https://wa.me/2347031935351?text=' + msg, '_blank');
-});
-
-/* privacy -> privacy.html */
-safeAdd('privacyBtn','click', ()=> { hideModal('menuModal'); window.location.href = 'privacy.html'; });
-
-/* consent -> open modal */
-safeAdd('consentBtn','click', ()=> { hideModal('menuModal'); showModal('consentModal'); });
-safeAdd('consentClose','click', ()=> hideModal('consentModal'));
-safeAdd('agreeBtn','click', async ()=>{
-  try{
-    if(!user) return toast('Not signed in');
-    await updateDoc(doc(db,'users',user.uid), { consent:true });
-    toast('Consent saved'); hideModal('consentModal');
-  }catch(err){ console.error(err); toast('Consent failed'); }
-});
-
-/* promote -> WhatsApp with video link */
-safeAdd('promoteBtn','click', ()=> {
-  if(!videos[idx]) return toast('No video');
-  window.open(`https://wa.me/?text=${encodeURIComponent(videos[idx].url)}`, '_blank');
-});
-
-/* skip button */
-safeAdd('skipBtn','click', ()=> nextVideo());
-
-/* ---------- Referral modals & handlers ---------- */
-safeAdd('referBtn','click', async ()=>{
-  hideModal('menuModal');
-  try{
-    if(!user) return toast('Not signed in');
-    const snap = await getDoc(doc(db,'users',user.uid));
-    let refCode = user.uid.slice(0,4);
-    if(snap.exists()){
-      const d = snap.data();
-      if(d.username) refCode = String(d.username).slice(0,4);
-      else if(d.refCode) refCode = d.refCode;
-    }
-    if(qs('showRef')) qs('showRef').innerText = refCode;
-    showModal('referModal');
-  }catch(e){ console.error(e); toast('Could not load ref'); }
-});
-safeAdd('refCancel','click', ()=> hideModal('referModal'));
-safeAdd('shareRefSmall','click', ()=> {
-  const code = qs('showRef')?.innerText || '';
-  if(!code) return toast('No ref code');
-  window.open(`https://wa.me/?text=${encodeURIComponent('Join Watch & Earn using my referral code: ' + code)}`, '_blank');
-});
-safeAdd('refSend','click', async ()=>{
-  const code = qs('inputRef')?.value.trim();
-  if(!code) return toast('Enter code');
-  try{
-    const all = await getDocs(collection(db,'users'));
-    let targetId = null; let targetData = null;
-    all.forEach(d => { if(d.data().refCode === code){ targetId = d.id; targetData = d.data(); }});
-    if(!targetId){ toast('Invalid code'); return; }
-    const me = await getDoc(doc(db,'users',user.uid));
-    if(me.exists() && me.data().referredBy){ toast('Already redeemed'); return; }
-    await updateDoc(doc(db,'users',user.uid), { referredBy: code });
-    await updateDoc(doc(db,'users',targetId), { balance: (targetData.balance||0) + 100 });
-    toast('Referral applied; referrer +₦100'); hideModal('referModal');
-  }catch(e){ console.error(e); toast('Redeem failed'); }
-});
-
-/* redeem code input on main card (optional send/Share) */
-safeAdd('redeemBtn','click', async ()=>{
-  const code = qs('redeemCode')?.value.trim();
-  if(!code) return toast('Enter code');
-  // reuse same logic as refSend
-  try{
-    const all = await getDocs(collection(db,'users'));
-    let targetId = null;
-    all.forEach(d => { if(d.data().refCode === code) targetId = d.id; });
-    if(!targetId) return toast('Invalid code');
-    const me = await getDoc(doc(db,'users',user.uid));
-    if(me.exists() && me.data().referredBy) return toast('Already redeemed');
-    await updateDoc(doc(db,'users',user.uid), { referredBy: code });
-    const tSnap = await getDoc(doc(db,'users',targetId));
-    await updateDoc(doc(db,'users',targetId), { balance: (tSnap.data().balance||0) + 100 });
-    toast('Referral redeemed');
-  }catch(e){ console.error(e); toast('Redeem failed'); }
-});
-safeAdd('shareRef','click', ()=> {
-  const code = qs('myRef')?.innerText || '';
-  if(!code) return toast('No ref code');
-  window.open(`https://wa.me/?text=${encodeURIComponent('Join Watch & Earn using my referral code: ' + code)}`, '_blank');
-});
-
-/* ---------- small misc safety: ensure modals hidden on load ---------- */
-document.addEventListener('DOMContentLoaded', ()=> {
+  // Make sure modals are hidden initially
   ['menuModal','referModal','consentModal'].forEach(id=>{
     const el = qs(id);
     if(el) el.style.display = 'none';
   });
+
+  // Basic menu open/close (3-dash)
+  safeAdd('menuBtn','click', ()=> showModal('menuModal'));
+  safeAdd('closeMenu','click', ()=> hideModal('menuModal'));
+
+  // Attach UI handlers that don't need auth first
+  safeAdd('closeMenu','click', ()=> hideModal('menuModal'));
+  safeAdd('skipBtn','click', ()=> nextVideo());
+  safeAdd('promoteBtn','click', ()=> {
+    if(!videos[idx]) return toast('No video to promote');
+    // message: you can edit the template
+    const msg = encodeURIComponent("Check this video: " + (videos[idx].url || ''));
+    window.open('https://wa.me/?text=' + msg, '_blank');
+  });
+
+  // menu buttons placeholders — final wiring happens after auth load
+  // (we still attach these so clicks at least have handlers)
+  safeAdd('withdrawBtn','click', ()=> { hideModal('menuModal'); window.location.href = 'withdraw.html'; });
+  safeAdd('privacyBtn','click', ()=> { hideModal('menuModal'); window.location.href = 'privacy.html'; });
+  safeAdd('contactBtn','click', ()=> {
+    hideModal('menuModal');
+    window.open('https://wa.me/2347031935351?text=' + encodeURIComponent('Hello, I need help with Watch & Earn.'), '_blank');
+  });
+  safeAdd('consentClose','click', ()=> hideModal('consentModal'));
+  safeAdd('refCancel','click', ()=> hideModal('referModal'));
+  safeAdd('shareRef','click', ()=> {
+    const code = qs('myRef')?.innerText || '';
+    if(!code) return toast('No ref code');
+    window.open(`https://wa.me/?text=${encodeURIComponent('Join Watch & Earn using my referral code: ' + code)}`, '_blank');
+  });
+
+}); // end DOMContentLoaded
+
+/* ---------- Auth state & load user + videos ---------- */
+onAuthStateChanged(auth, async (u) => {
+  if(!u){
+    // not logged in -> redirect to index
+    try{ window.location.href = 'index.html'; }catch(e){}
+    return;
+  }
+  user = u;
+  await loadUserData();
+  await loadVideos();
+  // now attach menu actions that rely on user/auth
+  attachAuthMenuActions();
 });
 
-/* End of module */
+/* attach menu actions that use auth/firestore/user data */
+function attachAuthMenuActions(){
+  safeAdd('logoutBtn','click', async ()=>{
+    try{ await signOut(auth); window.location.href = 'index.html'; }catch(e){ toast('Logout failed'); }
+  });
+  safeAdd('withdrawBtn','click', ()=> { hideModal('menuModal'); window.location.href = 'withdraw.html'; });
+
+  safeAdd('consentBtn','click', ()=> { hideModal('menuModal'); showModal('consentModal'); });
+  safeAdd('agreeBtn','click', async ()=>{
+    try{ await updateDoc(doc(db,'users',user.uid), { consent: true }); toast('Consent saved'); hideModal('consentModal'); }
+    catch(e){ console.error(e); toast('Consent failed'); }
+  });
+
+  safeAdd('referBtn','click', async ()=>{
+    hideModal('menuModal');
+    try{
+      const snap = await getDoc(doc(db,'users',user.uid));
+      let code = user.uid.slice(0,4);
+      if(snap.exists()){
+        const d = snap.data();
+        if(d.username) code = String(d.username).slice(0,4);
+        else if(d.refCode) code = d.refCode;
+      }
+      if(qs('showRef')) qs('showRef').innerText = code;
+      showModal('referModal');
+    }catch(e){ console.error(e); toast('Could not load ref'); }
+  });
+
+  // Redeem in modal
+  safeAdd('refSend','click', async ()=>{
+    const code = qs('inputRef')?.value?.trim();
+    if(!code) return toast('Enter code');
+    try{
+      const all = await getDocs(collection(db,'users'));
+      let targetId = null, targetData = null;
+      all.forEach(d => { if(d.data().refCode === code){ targetId = d.id; targetData = d.data(); }});
+      if(!targetId) return toast('Invalid code');
+      const meSnap = await getDoc(doc(db,'users',user.uid));
+      if(meSnap.exists() && meSnap.data().referredBy) return toast('Already redeemed');
+      await updateDoc(doc(db,'users',user.uid), { referredBy: code });
+      await updateDoc(doc(db,'users',targetId), { balance: (targetData.balance||0) + 100 });
+      toast('Referral applied; referrer +₦100');
+      hideModal('referModal');
+    }catch(e){ console.error(e); toast('Redeem failed'); }
+  });
+
+  // Redeem from top card
+  safeAdd('redeemBtn','click', async ()=>{
+    const code = qs('redeemCode')?.value?.trim();
+    if(!code) return toast('Enter code');
+    try{
+      const all = await getDocs(collection(db,'users'));
+      let targetId = null;
+      all.forEach(d => { if(d.data().refCode === code) targetId = d.id; });
+      if(!targetId) return toast('Invalid code');
+      const meSnap = await getDoc(doc(db,'users',user.uid));
+      if(meSnap.exists() && meSnap.data().referredBy) return toast('Already redeemed');
+      await updateDoc(doc(db,'users',user.uid), { referredBy: code });
+      const tSnap = await getDoc(doc(db,'users',targetId));
+      await updateDoc(doc(db,'users',targetId), { balance: (tSnap.data().balance||0) + 100 });
+      toast('Referral redeemed');
+    }catch(e){ console.error(e); toast('Redeem failed'); }
+  });
+
+  // Share small refer
+  safeAdd('shareRefSmall','click', ()=> {
+    const code = qs('showRef')?.innerText || '';
+    if(!code) return toast('No ref code');
+    window.open(`https://wa.me/?text=${encodeURIComponent('Join Watch & Earn using my referral code: ' + code)}`, '_blank');
+  });
+}
+
+/* ---------- Load user data ---------- */
+async function loadUserData(){
+  try{
+    const ref = doc(db,'users',user.uid);
+    const snap = await getDoc(ref);
+    if(snap.exists()){
+      const data = snap.data();
+      if(qs('balAmt')) qs('balAmt').innerText = data.balance || 0;
+      if(qs('myRef')) qs('myRef').innerText = data.refCode || (data.username ? String(data.username).slice(0,4) : user.uid.slice(0,4));
+    } else {
+      const uname = user.email ? user.email.split('@')[0] : user.uid.slice(0,6);
+      await setDoc(ref, { username: uname, email: user.email, balance: 0, refCode: uname.slice(0,4) });
+      if(qs('balAmt')) qs('balAmt').innerText = 0;
+      if(qs('myRef')) qs('myRef').innerText = uname.slice(0,4);
+    }
+  }catch(e){ console.error(e); toast('Failed to load profile'); }
+}
+
+/* ---------- Load videos ---------- */
+async function loadVideos(){
+  try{
+    const vRef = collection(db,'videos');
+    const vSnap = await getDocs(vRef);
+    videos = vSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+    if(!videos || videos.length === 0){
+      if(qs('videoScreen')) qs('videoScreen').innerHTML = '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#fff">No video available</div>';
+      if(qs('secondsLeft')) qs('secondsLeft').innerText = '00';
+      if(qs('coinsToGet')) qs('coinsToGet').innerText = '00';
+      return;
+    }
+    idx = 0;
+    loadCurrent();
+  }catch(e){ console.error(e); toast('Failed to load videos'); }
+}
+
+/* ---------- YouTube helpers & player ---------- */
+function extractYouTubeId(url){
+  if(!url) return '';
+  const m = String(url).match(/(?:v=|youtu\.be\/|\/)([0-9A-Za-z_-]{11})/);
+  return m ? m[1] : url;
+}
+
+function loadCurrent(){
+  const v = videos[idx];
+  if(!v) return toast('No video');
+  const vidId = extractYouTubeId(v.url);
+  countdown = Number(v.seconds || 10);
+  if(qs('secondsLeft')) qs('secondsLeft').innerText = countdown;
+  if(qs('coinsToGet')) qs('coinsToGet').innerText = Number(v.coins || 0);
+  rewarded = false;
+  if(qs('videoScreen')) qs('videoScreen').innerHTML = '<div id="player"></div>';
+  if(ytPlayer && typeof ytPlayer.destroy === 'function') try{ ytPlayer.destroy(); }catch(e){}
+  try{
+    ytPlayer = new YT.Player('player', {
+      height:'100%', width:'100%', videoId: vidId,
+      playerVars: { autoplay:1, playsinline:1, rel:0, enablejsapi:1, modestbranding:1 },
+      events: { 'onStateChange': onPlayerStateChange }
+    });
+  }catch(e){
+    console.error('YT player init failed', e);
+    if(qs('videoScreen')) qs('videoScreen').innerHTML = '<div style="height:100%;display:flex;align-items:center;justify-content:center;color:#fff">Video failed to load</div>';
+  }
+}
+
+function onPlayerStateChange(event){
+  const state = event.data;
+  if(state === YT.PlayerState.PLAYING){
+    playing = true; startCountdown();
+  } else if(state === YT.PlayerState.PAUSED || state === YT.PlayerState.BUFFERING){
+    playing = false; clearInterval(countdownInterval);
+  } else if(state === YT.PlayerState.ENDED){
+    playing = false; clearInterval(countdownInterval);
+    if(!rewarded){ rewardUser(); nextVideo(); }
+  }
+}
+
+function startCountdown(){
+  clearInterval(countdownInterval);
+  countdownInterval = setInterval(()=>{
+    if(!playing) return;
+    countdown--;
+    if(qs('secondsLeft')) qs('secondsLeft').innerText = countdown;
+    if(countdown <= 0){
+      clearInterval(countdownInterval);
+      if(!rewarded){ rewardUser(); nextVideo(); }
+    }
+  },1000);
+}
+
+/* ---------- Reward user (one time per video) ---------- */
+async function rewardUser(){
+  try{
+    const v = videos[idx] || {};
+    const coins = Number(v.coins || 0);
+    const ref = doc(db,'users',user.uid);
+    const snap = await getDoc(ref);
+    let bal = snap.exists() ? (snap.data().balance || 0) : 0;
+    bal = Number(bal) + coins;
+    await updateDoc(ref, { balance: bal });
+    if(qs('balAmt')) qs('balAmt').innerText = bal;
+    rewarded = true;
+    toast('+' + coins + ' coins added');
+  }catch(e){ console.error('rewardUser', e); toast('Reward failed'); }
+}
+
+/* ---------- Next video, skip ---------- */
+function nextVideo(){
+  try{ if(ytPlayer && ytPlayer.stopVideo) ytPlayer.stopVideo(); }catch(e){}
+  clearInterval(countdownInterval);
+  playing = false; rewarded = false;
+  idx = (idx + 1) % videos.length;
+  setTimeout(loadCurrent, 500);
+}
+
+/* Expose skip (in case in old code referenced globally) */
+window.nextVideo = nextVideo;
+
+/* end module */
 </script>
 
-<!-- YouTube API script (single include) -->
+<!-- Single YouTube API include (leave exactly one of these) -->
 <script async src="https://www.youtube.com/iframe_api"></script>
