@@ -85,15 +85,13 @@ body{margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial;background:var(-
 
 <!-- Firebase -->
 <script type="module">
-import { 
-  initializeApp 
-} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
-import { 
-  getFirestore, collection, addDoc, getDocs, deleteDoc, 
-  doc, updateDoc, onSnapshot, orderBy, query 
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
+import {
+  getFirestore, collection, addDoc, getDocs, deleteDoc,
+  doc, updateDoc, onSnapshot, orderBy, query
 } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
-// --- Firebase init ---
+// --- FIREBASE INIT ---
 const firebaseConfig = {
   apiKey: "AIzaSyCzFqbBdIMucN6A7zE6US6aZziyp_3lMB0",
   authDomain: "watchandarn.firebaseapp.com",
@@ -106,55 +104,57 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// --- Helper ---
+// --- HELPERS ---
 function qs(id){return document.getElementById(id);}
 function toast(msg){
-  const el = document.createElement('div');
-  el.style.position='fixed';el.style.left='50%';el.style.top='20%';
-  el.style.transform='translateX(-50%)';el.style.background='#fff';
-  el.style.padding='10px 18px';el.style.borderRadius='8px';
-  el.style.boxShadow='0 10px 20px rgba(0,0,0,0.1)';
-  el.style.zIndex='9999';el.innerText=msg;
+  const el=document.createElement('div');
+  el.style.position='fixed';
+  el.style.left='50%';
+  el.style.top='18%';
+  el.style.transform='translateX(-50%)';
+  el.style.background='white';
+  el.style.padding='10px 16px';
+  el.style.borderRadius='10px';
+  el.style.boxShadow='0 10px 30px rgba(0,0,0,0.1)';
+  el.style.zIndex='9999';
+  el.innerText=msg;
   document.body.appendChild(el);
   setTimeout(()=>el.remove(),2200);
 }
 
-// --- Login Control ---
+// --- ADMIN LOGIN ---
 const ADMIN_USER='vmanstudios', ADMIN_PASS='242777Aa#', ADMIN_PET='Dragon';
 qs('ad_login').addEventListener('click', ()=>{
-  const u=qs('ad_user').value.trim(),
-        p=qs('ad_pass').value.trim(),
-        pet=qs('ad_pet').value.trim();
+  const u=qs('ad_user').value.trim();
+  const p=qs('ad_pass').value.trim();
+  const pet=qs('ad_pet').value.trim();
   if(u===ADMIN_USER && p===ADMIN_PASS && pet===ADMIN_PET){
     qs('loginPanel').style.display='none';
     qs('adminArea').style.display='block';
     loadVideos();
     loadUsers();
     loadWithdrawals();
-  } else toast('Admin credentials wrong');
+  }else toast('Invalid admin login');
 });
 
-// --- Tabs Navigation ---
-const tabVideos = qs('tabVideos'),
-      tabUsers = qs('tabUsers'),
-      tabWithdraw = qs('tabWithdraw'),
-      videosTab = qs('videosTab'),
-      usersTab = qs('usersTab'),
-      withdrawTab = qs('withdrawTab');
+// --- TAB SWITCHING ---
+const tabs = {
+  videos: {tab: qs('tabVideos'), section: qs('videosTab')},
+  users: {tab: qs('tabUsers'), section: qs('usersTab')},
+  withdraw: {tab: qs('tabWithdraw'), section: qs('withdrawTab')}
+};
+Object.keys(tabs).forEach(name=>{
+  tabs[name].tab.addEventListener('click', ()=>{
+    Object.values(tabs).forEach(t=>{
+      t.tab.classList.remove('active');
+      t.section.style.display='none';
+    });
+    tabs[name].tab.classList.add('active');
+    tabs[name].section.style.display='block';
+  });
+});
 
-tabVideos.onclick = ()=>{activateTab('videos')};
-tabUsers.onclick = ()=>{activateTab('users')};
-tabWithdraw.onclick = ()=>{activateTab('withdraw')};
-
-function activateTab(name){
-  [tabVideos,tabUsers,tabWithdraw].forEach(t=>t.classList.remove('active'));
-  [videosTab,usersTab,withdrawTab].forEach(v=>v.style.display='none');
-  if(name==='videos'){tabVideos.classList.add('active');videosTab.style.display='block';}
-  if(name==='users'){tabUsers.classList.add('active');usersTab.style.display='block';}
-  if(name==='withdraw'){tabWithdraw.classList.add('active');withdrawTab.style.display='block';}
-}
-
-// --- Video Management ---
+// --- VIDEO MANAGEMENT ---
 const vidCol = collection(db,'videos');
 
 qs('vid_add').addEventListener('click', async ()=>{
@@ -164,35 +164,11 @@ qs('vid_add').addEventListener('click', async ()=>{
   if(!url || !secs || !coins){ toast('Fill all fields'); return; }
   try{
     await addDoc(vidCol, { url, seconds:secs, coins, createdAt: Date.now() });
-    toast('Video added');
+    toast('Video added successfully');
     qs('vid_url').value=''; qs('vid_seconds').value=''; qs('vid_coins').value='';
   }catch(e){
     console.error(e); toast('Failed to add video');
   }
-});
-
-// Real-time video list
-const qv = query(vidCol, orderBy('createdAt','desc'));
-onSnapshot(qv, (snap)=>{
-  const tbody = qs('vid_table').querySelector('tbody');
-  tbody.innerHTML='';
-  snap.forEach(docSnap=>{
-    const v = docSnap.data();
-    const tr = document.createElement('tr');
-    const thumb = `https://img.youtube.com/vi/${extractID(v.url)}/0.jpg`;
-    tr.innerHTML = `
-      <td><img class="thumb" src="${thumb}" alt=""></td>
-      <td>${v.seconds}s</td>
-      <td>₦${v.coins}</td>
-      <td><button class="btn-ghost delBtn" data-id="${docSnap.id}">Delete</button></td>`;
-    tbody.appendChild(tr);
-  });
-  document.querySelectorAll('.delBtn').forEach(btn=>{
-    btn.onclick=async ()=>{
-      try{ await deleteDoc(doc(db,'videos',btn.dataset.id)); toast('Deleted'); }
-      catch(e){ toast('Delete failed'); }
-    };
-  });
 });
 
 function extractID(url){
@@ -200,14 +176,39 @@ function extractID(url){
   return match ? match[1] : '';
 }
 
-// --- Load Users ---
+function loadVideos(){
+  const qv = query(vidCol, orderBy('createdAt','desc'));
+  onSnapshot(qv,(snap)=>{
+    const tbody = qs('vid_table').querySelector('tbody');
+    tbody.innerHTML='';
+    if(snap.empty){tbody.innerHTML='<tr><td colspan="4">No videos</td></tr>';return;}
+    snap.forEach(docSnap=>{
+      const v = docSnap.data();
+      const tr=document.createElement('tr');
+      const thumb=`https://img.youtube.com/vi/${extractID(v.url)}/0.jpg`;
+      tr.innerHTML=`
+        <td><img class="thumb" src="${thumb}" alt="thumb"></td>
+        <td>${v.seconds}s</td>
+        <td>₦${v.coins}</td>
+        <td><button class="btn-ghost" onclick="deleteVideo('${docSnap.id}')">Delete</button></td>`;
+      tbody.appendChild(tr);
+    });
+  });
+}
+
+window.deleteVideo = async (id)=>{
+  try{ await deleteDoc(doc(db,'videos',id)); toast('Video deleted'); }
+  catch(e){ toast('Delete failed'); }
+};
+
+// --- USER MANAGEMENT ---
 async function loadUsers(){
   const tbody = qs('usersTable').querySelector('tbody');
-  tbody.innerHTML = '<tr><td colspan="5">Loading...</td></tr>';
+  tbody.innerHTML='<tr><td colspan="5">Loading...</td></tr>';
   try{
-    const qSnap = await getDocs(collection(db,'users'));
+    const qSnap=await getDocs(collection(db,'users'));
     tbody.innerHTML='';
-    if(qSnap.empty){tbody.innerHTML='<tr><td colspan="5">No users found.</td></tr>';return;}
+    if(qSnap.empty){tbody.innerHTML='<tr><td colspan="5">No users</td></tr>';return;}
     qSnap.forEach(docSnap=>{
       const u=docSnap.data();
       const tr=document.createElement('tr');
@@ -228,31 +229,35 @@ window.toggleDisable = async (uid,disable)=>{
     await updateDoc(ref,{disabled:disable});
     toast('User updated');
     loadUsers();
-  }catch(e){toast('Error');}
+  }catch(e){toast('Error updating user');}
 };
 
-// --- Withdraw Requests (new) ---
-const withdrawCol = collection(db,'withdrawals');
-const qw = query(withdrawCol, orderBy('time','desc'));
-onSnapshot(qw, (snap)=>{
-  const tbody = qs('withdrawTable').querySelector('tbody');
-  tbody.innerHTML='';
-  if(snap.empty){tbody.innerHTML='<tr><td colspan="5">No withdrawals</td></tr>';return;}
-  snap.forEach(docSnap=>{
-    const w=docSnap.data();
-    const tr=document.createElement('tr');
-    tr.innerHTML=`
-      <td>${w.userEmail||'-'}</td>
-      <td>₦${w.amount||0}</td>
-      <td>${w.code||'-'}</td>
-      <td>${new Date(w.time).toLocaleString()}</td>
-      <td><button class="btn-ghost" onclick="deleteWithdraw('${docSnap.id}')">Delete</button></td>`;
-    tbody.appendChild(tr);
+// --- WITHDRAWAL MANAGEMENT ---
+function loadWithdrawals(){
+  const qw=query(collection(db,'withdrawals'),orderBy('time','desc'));
+  onSnapshot(qw,(snap)=>{
+    const tbody=qs('withdrawTable').querySelector('tbody');
+    tbody.innerHTML='';
+    if(snap.empty){tbody.innerHTML='<tr><td colspan="5">No withdrawals</td></tr>';return;}
+    snap.forEach(docSnap=>{
+      const w=docSnap.data();
+      const tr=document.createElement('tr');
+      const t=new Date(w.time).toLocaleString();
+      tr.innerHTML=`
+        <td>${w.username||w.userEmail||'-'}</td>
+        <td>₦${w.amount||0}</td>
+        <td>${w.code||'-'}</td>
+        <td>${t}</td>
+        <td><button class="btn-ghost" onclick="deleteWithdraw('${docSnap.id}')">Delete</button></td>`;
+      tbody.appendChild(tr);
+    });
   });
-});
+}
 
 window.deleteWithdraw = async (id)=>{
-  try{await deleteDoc(doc(db,'withdrawals',id));toast('Deleted');}
-  catch(e){toast('Delete failed');}
+  try{
+    await deleteDoc(doc(db,'withdrawals',id));
+    toast('Withdrawal deleted');
+  }catch(e){toast('Delete failed');}
 };
 </script>
