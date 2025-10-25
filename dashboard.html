@@ -400,7 +400,111 @@ async function loadVideos(){
 function extractYouTubeId(url){
   if(!url) return '';
   const m = url.match(/(?:v=|youtu\.be\/|\/)([0-9A-Za-z_-]{11})/);
-  return m ? m[1] : url;
+<script type="module">
+/* dashboard - single cleaned script: Firebase + Auth + Firestore + YouTube player + UI handlers */
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+import {
+  getFirestore, doc, getDoc, setDoc, updateDoc,
+  collection, getDocs
+} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+
+/* ---------- Firebase config (same across files) ---------- */
+const firebaseConfig = {
+  apiKey: "AIzaSyCzFqbBdIMucN6A7zE6US6aZziyp_3lMB0",
+  authDomain: "watchandarn.firebaseapp.com",
+  projectId: "watchandarn",
+  storageBucket: "watchandarn.appspot.com",
+  messagingSenderId: "670181055241",
+  appId: "1:670181055241:web:974eabbaff1c2cbf28d1d8",
+  measurementId: "G-P1QGG9WV4R"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+/* ---------- DOM helpers ---------- */
+const qs = id => document.getElementById(id);
+function toast(msg){
+  const el = document.createElement('div');
+  el.style.position='fixed'; el.style.left='50%'; el.style.top='18%';
+  el.style.transform='translateX(-50%)'; el.style.background='#fff';
+  el.style.padding='10px 18px'; el.style.borderRadius='10px';
+  el.style.boxShadow='0 5px 20px rgba(0,0,0,0.08)'; el.style.zIndex='9999';
+  el.innerText = msg;
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(),2000);
+}
+function showModal(id){ const e = qs(id); if(e) e.style.display = 'flex'; }
+function hideModal(id){ const e = qs(id); if(e) e.style.display = 'none'; }
+
+/* ---------- state ---------- */
+let user = null;
+let videos = [];
+let idx = 0;
+let ytPlayer = null;
+let countdown = 0;
+let countdownInterval = null;
+let playing = false;
+let rewarded = false;
+
+/* ---------- ensure UI elements exist before attaching listeners ---------- */
+function safeAdd(id, evt, fn){
+  const el = qs(id);
+  if(el) el.addEventListener(evt, fn);
+}
+
+/* ---------- Auth state ---------- */
+onAuthStateChanged(auth, async (u) => {
+  if(!u){ window.location.href = 'index.html'; return; }
+  user = u;
+  await loadUserData();
+  await loadVideos();
+});
+
+/* ---------- Load user profile from Firestore ---------- */
+async function loadUserData(){
+  try{
+    const ref = doc(db,'users', user.uid);
+    const snap = await getDoc(ref);
+    if(snap.exists()){
+      const data = snap.data();
+      if(qs('balAmt')) qs('balAmt').innerText = (data.balance||0);
+      if(qs('myRef')) qs('myRef').innerText = (data.refCode || (data.username ? String(data.username).slice(0,4) : user.uid.slice(0,4)));
+    } else {
+      const uname = user.email ? user.email.split('@')[0] : user.uid.slice(0,6);
+      await setDoc(ref, { username: uname, email: user.email, balance: 0, refCode: uname.slice(0,4) });
+      if(qs('balAmt')) qs('balAmt').innerText = 0;
+      if(qs('myRef')) qs('myRef').innerText = uname.slice(0,4);
+    }
+  }catch(e){ console.error('loadUserData', e); toast('Unable to load user'); }
+}
+
+/* ---------- Videos (from Firestore) ---------- */
+async function loadVideos(){
+  try{
+    const vCol = collection(db,'videos');
+    const snap = await getDocs(vCol);
+    videos = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    if(!videos || videos.length === 0){
+      if(qs('videoScreen')) qs('videoScreen').innerHTML = '<div style="height:100%;display:flex;align-items:center;justify-content:center;color:#fff">No video available</div>';
+      if(qs('secondsLeft')) qs('secondsLeft').innerText = '00';
+      if(qs('coinsToGet')) qs('coinsToGet').innerText = '00';
+      return;
+    }
+    idx = 0;
+    loadCurrent();
+  }catch(e){ console.error('loadVideos', e); toast('Failed to load videos'); }
+}
+
+/* ---------- YouTube helper ---------- */
+function extractYouTubeId(url){
+  if(!url) return '';
+  try{
+    const m = url.match(/(?:v=|youtu\.be\/|\/)([0-9A-Za-z_-]{11})/);
+    return m ? m[1] : url;
+  }catch(e){ return url; }
 }
 
 /* ---------- Player & countdown ---------- */
@@ -409,11 +513,12 @@ function loadCurrent(){
   if(!v){ toast('No video'); return; }
   const vidId = extractYouTubeId(v.url);
   countdown = Number(v.seconds || 10);
-  qs('secondsLeft').innerText = countdown;
-  qs('coinsToGet').innerText = Number(v.coins || 0);
+  if(qs('secondsLeft')) qs('secondsLeft').innerText = countdown;
+  if(qs('coinsToGet')) qs('coinsToGet').innerText = Number(v.coins || 0);
   rewarded = false;
-  qs('videoScreen').innerHTML = '<div id="player"></div>';
+  if(qs('videoScreen')) qs('videoScreen').innerHTML = '<div id="player"></div>';
   if(ytPlayer && ytPlayer.destroy) try{ ytPlayer.destroy(); }catch(e){}
+  // create YT player (YT API script must also be present once on the page)
   ytPlayer = new YT.Player('player', {
     height:'100%', width:'100%', videoId: vidId,
     playerVars: { autoplay:1, playsinline:1, rel:0, enablejsapi:1, modestbranding:1 },
@@ -423,6 +528,7 @@ function loadCurrent(){
 
 function onPlayerStateChange(event){
   const state = event.data;
+  // 1 playing, 2 paused, 3 buffering, 0 ended
   if(state === YT.PlayerState.PLAYING){
     playing = true; startCountdown();
   } else if(state === YT.PlayerState.PAUSED || state === YT.PlayerState.BUFFERING){
@@ -438,12 +544,12 @@ function startCountdown(){
   countdownInterval = setInterval(()=>{
     if(!playing) return;
     countdown--;
-    qs('secondsLeft').innerText = countdown;
+    if(qs('secondsLeft')) qs('secondsLeft').innerText = countdown;
     if(countdown <= 0){
       clearInterval(countdownInterval);
       if(!rewarded){ rewardUser(); nextVideo(); }
     }
-  }, 1000);
+  },1000);
 }
 
 /* ---------- Reward (Firestore) ---------- */
@@ -456,7 +562,7 @@ async function rewardUser(){
     let bal = snap.exists() ? (snap.data().balance || 0) : 0;
     bal = Number(bal) + coins;
     await updateDoc(ref, { balance: bal });
-    qs('balAmt').innerText = bal;
+    if(qs('balAmt')) qs('balAmt').innerText = bal;
     rewarded = true;
     toast('+' + coins + ' coins added');
   } catch(err){
@@ -473,37 +579,55 @@ function nextVideo(){
   setTimeout(loadCurrent, 500);
 }
 
-/* ---------- Buttons & menu handlers ---------- */
-/* Skip */
-qs('skipBtn')?.addEventListener('click', ()=> { nextVideo(); });
+/* ---------- Menu & UI handlers (attach after functions exist) ---------- */
+/* open/close menu */
+safeAdd('menuBtn','click', ()=> showModal('menuModal'));
+safeAdd('closeMenu','click', ()=> hideModal('menuModal'));
 
-/* Menu open/close */
-qs('menuBtn')?.addEventListener('click', ()=> showModal('menuModal'));
-qs('closeMenu')?.addEventListener('click', ()=> hideModal('menuModal'));
+/* withdraw redirect */
+safeAdd('withdrawBtn','click', ()=> { hideModal('menuModal'); window.location.href = 'withdraw.html'; });
 
-/* Menu nav */
-qs('withdrawBtn')?.addEventListener('click', ()=> { hideModal('menuModal'); window.location.href = 'withdraw.html'; });
-qs('logoutBtn')?.addEventListener('click', async ()=> { try{ await signOut(auth); window.location.href = 'index.html'; } catch(e){ toast('Logout failed'); } });
-qs('contactBtn')?.addEventListener('click', ()=> { hideModal('menuModal'); const msg = encodeURIComponent('Hello, I need help with Watch & Earn. My email: ' + (user?.email || '')); window.open('https://wa.me/2347031935351?text=' + msg, '_blank'); });
-qs('privacyBtn')?.addEventListener('click', ()=> { hideModal('menuModal'); window.location.href = 'privacy.html'; });
-qs('consentBtn')?.addEventListener('click', ()=> { hideModal('menuModal'); showModal('consentModal'); });
-
-/* Consent */
-qs('consentClose')?.addEventListener('click', ()=> hideModal('consentModal'));
-qs('agreeBtn')?.addEventListener('click', async ()=>{
-  try{ await updateDoc(doc(db,'users',user.uid), { consent:true }); toast('Consent saved'); hideModal('consentModal'); } catch(e){ console.error(e); toast('Consent failed'); }
+/* logout */
+safeAdd('logoutBtn','click', async ()=> {
+  try{ await signOut(auth); window.location.href = 'index.html'; }
+  catch(e){ toast('Logout failed'); }
 });
 
-/* Promote -> WhatsApp share of current video link */
-qs('promoteBtn')?.addEventListener('click', ()=> {
+/* contact -> WhatsApp */
+safeAdd('contactBtn','click', ()=> {
+  hideModal('menuModal');
+  const msg = encodeURIComponent('Hello, I need help with Watch & Earn. My email: ' + (user?.email || ''));
+  window.open('https://wa.me/2347031935351?text=' + msg, '_blank');
+});
+
+/* privacy -> privacy.html */
+safeAdd('privacyBtn','click', ()=> { hideModal('menuModal'); window.location.href = 'privacy.html'; });
+
+/* consent -> open modal */
+safeAdd('consentBtn','click', ()=> { hideModal('menuModal'); showModal('consentModal'); });
+safeAdd('consentClose','click', ()=> hideModal('consentModal'));
+safeAdd('agreeBtn','click', async ()=>{
+  try{
+    if(!user) return toast('Not signed in');
+    await updateDoc(doc(db,'users',user.uid), { consent:true });
+    toast('Consent saved'); hideModal('consentModal');
+  }catch(err){ console.error(err); toast('Consent failed'); }
+});
+
+/* promote -> WhatsApp with video link */
+safeAdd('promoteBtn','click', ()=> {
   if(!videos[idx]) return toast('No video');
   window.open(`https://wa.me/?text=${encodeURIComponent(videos[idx].url)}`, '_blank');
 });
 
-/* Referral modal */
-qs('referBtn')?.addEventListener('click', async ()=>{
+/* skip button */
+safeAdd('skipBtn','click', ()=> nextVideo());
+
+/* ---------- Referral modals & handlers ---------- */
+safeAdd('referBtn','click', async ()=>{
   hideModal('menuModal');
   try{
+    if(!user) return toast('Not signed in');
     const snap = await getDoc(doc(db,'users',user.uid));
     let refCode = user.uid.slice(0,4);
     if(snap.exists()){
@@ -511,15 +635,17 @@ qs('referBtn')?.addEventListener('click', async ()=>{
       if(d.username) refCode = String(d.username).slice(0,4);
       else if(d.refCode) refCode = d.refCode;
     }
-    qs('showRef').innerText = refCode;
+    if(qs('showRef')) qs('showRef').innerText = refCode;
     showModal('referModal');
   }catch(e){ console.error(e); toast('Could not load ref'); }
 });
-
-qs('refCancel')?.addEventListener('click', ()=> hideModal('referModal'));
-qs('shareRefSmall')?.addEventListener('click', ()=> { const code = qs('showRef').innerText || ''; if(!code) return toast('No ref code'); window.open(`https://wa.me/?text=${encodeURIComponent('Join Watch & Earn using my referral code: ' + code)}`, '_blank'); });
-
-qs('refSend')?.addEventListener('click', async ()=>{
+safeAdd('refCancel','click', ()=> hideModal('referModal'));
+safeAdd('shareRefSmall','click', ()=> {
+  const code = qs('showRef')?.innerText || '';
+  if(!code) return toast('No ref code');
+  window.open(`https://wa.me/?text=${encodeURIComponent('Join Watch & Earn using my referral code: ' + code)}`, '_blank');
+});
+safeAdd('refSend','click', async ()=>{
   const code = qs('inputRef')?.value.trim();
   if(!code) return toast('Enter code');
   try{
@@ -534,8 +660,41 @@ qs('refSend')?.addEventListener('click', async ()=>{
     toast('Referral applied; referrer +₦100'); hideModal('referModal');
   }catch(e){ console.error(e); toast('Redeem failed'); }
 });
+
+/* redeem code input on main card (optional send/Share) */
+safeAdd('redeemBtn','click', async ()=>{
+  const code = qs('redeemCode')?.value.trim();
+  if(!code) return toast('Enter code');
+  // reuse same logic as refSend
+  try{
+    const all = await getDocs(collection(db,'users'));
+    let targetId = null;
+    all.forEach(d => { if(d.data().refCode === code) targetId = d.id; });
+    if(!targetId) return toast('Invalid code');
+    const me = await getDoc(doc(db,'users',user.uid));
+    if(me.exists() && me.data().referredBy) return toast('Already redeemed');
+    await updateDoc(doc(db,'users',user.uid), { referredBy: code });
+    const tSnap = await getDoc(doc(db,'users',targetId));
+    await updateDoc(doc(db,'users',targetId), { balance: (tSnap.data().balance||0) + 100 });
+    toast('Referral redeemed');
+  }catch(e){ console.error(e); toast('Redeem failed'); }
+});
+safeAdd('shareRef','click', ()=> {
+  const code = qs('myRef')?.innerText || '';
+  if(!code) return toast('No ref code');
+  window.open(`https://wa.me/?text=${encodeURIComponent('Join Watch & Earn using my referral code: ' + code)}`, '_blank');
+});
+
+/* ---------- small misc safety: ensure modals hidden on load ---------- */
+document.addEventListener('DOMContentLoaded', ()=> {
+  ['menuModal','referModal','consentModal'].forEach(id=>{
+    const el = qs(id);
+    if(el) el.style.display = 'none';
+  });
+});
+
+/* End of module */
 </script>
 
-<!-- YouTube API script (must be present) -->
+<!-- YouTube API script (single include) -->
 <script async src="https://www.youtube.com/iframe_api"></script>
-
