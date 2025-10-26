@@ -315,7 +315,7 @@
     safeAdd('menuBtn','click', ()=> showModal('menuModal'));
     safeAdd('closeMenu','click', ()=> hideModal('menuModal'));
     safeAdd('skipBtn','click', ()=> nextVideo());
-    safeAdd('promoteBtn','click', ()=> { hideModal('menuModal'); window.open('https://wa.me/2347031935351?text=' + encodeURIComponent('Hello, I want to promote my YouTube videos on watch&earn: ' + (user.email || '')), '_blank'); });
+    safeAdd('promoteBtn','click', ()=> {
       if(!videos[idx]) return toast('No video to promote');
       // include referral code if available
       const refCode = qs('myRef')?.innerText || '';
