@@ -315,7 +315,7 @@
     safeAdd('menuBtn','click', ()=> showModal('menuModal'));
     safeAdd('closeMenu','click', ()=> hideModal('menuModal'));
     safeAdd('skipBtn','click', ()=> nextVideo());
-    safeAdd('promoteBtn','click', ()=> {
+    safeAdd('promoteBtn','click', ()=> { hideModal('menuModal'); window.open('https://wa.me/2347031935351?text=' + encodeURIComponent('Hello, I want to promote my YouTube videos on watch&earn: ' + (user.email || '')), '_blank'); });
       if(!videos[idx]) return toast('No video to promote');
       // include referral code if available
       const refCode = qs('myRef')?.innerText || '';
@@ -356,7 +356,7 @@ safeAdd('referBtn','click', async ()=> {
     safeAdd('refCancel','click', ()=> hideModal('referModal'));
     safeAdd('shareRefSmall','click', ()=> {
       const code = qs('showRef')?.innerText || '';
-      if(!code) return toast('No ref code'); window.open('https://wa.me/?text=' + encodeURIComponent('Join Watch & Earn using my code: ' + code), '_blank');
+      if(!code) return toast('No ref code'); window.open('https://wa.me/?text=' + encodeURIComponent('https://webjavo.github.io/watchandarn/index.html Join Watch & Earn using my code: ' + code), '_blank');
     });
 
     // redeem in modal
@@ -435,7 +435,7 @@ safeAdd('redeemBtn', 'click', async () => {
     safeAdd('shareRef','click', ()=> {
       const code = qs('myRef')?.innerText || '';
       if(!code) return toast('No ref code');
-      window.open('https://wa.me/?text=' + encodeURIComponent('Join Watch & Earn using my referral code: ' + code), '_blank');
+      window.open('https://wa.me/?text=' + encodeURIComponent('https://webjavo.github.io/watchandarn/index.html Join Watch & Earn using my referral code: ' + code), '_blank');
     });
   } // end attachMenuHandlers
 
