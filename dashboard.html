@@ -339,66 +339,67 @@
     });
 
     // refer modal open
-    safeAdd('referBtn','click', async ()=> {
-      hideModal('menuModal');
-      try{
-        const snap = await getDoc(doc(db,'users',user.uid));
-        let code = user.uid.slice(0,4);
-        if(snap.exists()){
-          const d = snap.data();
-          if(d.username) code = String(d.username).slice(0,4);
-          else if(d.refCode) code = d.refCode;
-        }
-        if(qs('showRef')) qs('showRef').innerText = code;
-        showModal('referModal');
-      }catch(e){ console.error(e); toast('Could not load ref'); }
-    });
-    safeAdd('refCancel','click', ()=> hideModal('referModal'));
-    safeAdd('shareRefSmall','click', ()=> {
-      const code = qs('showRef')?.innerText || '';
-      if(!code) return toast('No ref code'); window.open('https://wa.me/?text=' + encodeURIComponent('Join Watch & Earn using my code: ' + code), '_blank');
-    });
+    // --- Referral system ---
+safeAdd('referBtn','click', async ()=> {
+  hideModal('menuModal');
+  try {
+    const snap = await getDoc(doc(db,'users',user.uid));
+    let code = user.uid.slice(0,4);
+    if(snap.exists()){
+      const d = snap.data();
+      if(d.username) code = String(d.username).slice(0,4);
+      else if(d.refCode) code = d.refCode;
+    }
+    if(qs('showRef')) qs('showRef').innerText = code;
+    showModal('referModal');
+  }catch(e){
+    console.error(e);
+    toast('Could not load referral code');
+  }
+});
 
-    // redeem in modal
-    safeAdd('refSend','click', async ()=> {
-      const code = qs('inputRef')?.value?.trim(); if(!code) return toast('Enter code'); 
-      try{
-        const all = await getDocs(collection(db,'users'));
-        let targetId = null; let targetData = null;
-        all.forEach(d => { if(d.data().refCode === code) { targetId = d.id; targetData = d.data(); }});
-        if(!targetId) return toast('Invalid code');
-        const me = await getDoc(doc(db,'users',user.uid));
-        if(me.exists() && me.data().referredBy) return toast('Already redeemed');
-        await updateDoc(doc(db,'users',user.uid), { referredBy: code });
-        await updateDoc(doc(db,'users',targetId), { balance: (targetData.balance||0) + 100 });
-        toast('Referral applied; referrer +₦100'); hideModal('referModal');
-      }catch(e){ console.error(e); toast('Redeem failed'); }
-    });
+safeAdd('refCancel','click', ()=> hideModal('referModal'));
 
-    // redeem from top card
-    safeAdd('redeemBtn','click', async ()=> {
-      const code = qs('redeemCode')?.value?.trim(); if(!code) return toast('Enter code');
-      try{
-        const all = await getDocs(collection(db,'users'));
-        let targetId = null;
-        all.forEach(d => { if(d.data().refCode === code) targetId = d.id; });
-        if(!targetId) return toast('Invalid code');
-        const me = await getDoc(doc(db,'users',user.uid));
-        if(me.exists() && me.data().referredBy) return toast('Already redeemed');
-        await updateDoc(doc(db,'users',user.uid), { referredBy: code });
-        const tSnap = await getDoc(doc(db,'users',targetId));
-        await updateDoc(doc(db,'users',targetId), { balance: (tSnap.data().balance||0) + 100 });
-        toast('Referral redeemed');
-      }catch(e){ console.error(e); toast('Redeem failed'); }
-    });
+safeAdd('shareRefSmall','click', ()=>{
+  const code = qs('showRef')?.innerText || '';
+  if(!code) return toast('No referral code');
+  window.open(`https://wa.me/?text=${encodeURIComponent('Join Watch & Earn using my referral code: ' + code)}`, '_blank');
+});
 
-    // share top
-    safeAdd('shareRef','click', ()=> {
-      const code = qs('myRef')?.innerText || '';
-      if(!code) return toast('No ref code');
-      window.open('https://wa.me/?text=' + encodeURIComponent('Join Watch & Earn using my referral code: ' + code), '_blank');
+safeAdd('shareRef','click', ()=>{
+  const code = qs('myRef')?.innerText || '';
+  if(!code) return toast('No referral code');
+  window.open(`https://wa.me/?text=${encodeURIComponent('Join Watch & Earn using my referral code: ' + code)}`, '_blank');
+});
+
+/* ---------- Unified redeem function ---------- */
+async function redeemReferral(code){
+  if(!code) return toast('Enter code');
+  try{
+    const all = await getDocs(collection(db,'users'));
+    let targetId=null,targetData=null;
+    all.forEach(d=>{
+      if(d.data().refCode===code){ targetId=d.id; targetData=d.data(); }
     });
-  } // end attachMenuHandlers
+    if(!targetId) return toast('Invalid code');
+    if(targetId===user.uid) return toast('You cannot use your own code');
+    const meSnap = await getDoc(doc(db,'users',user.uid));
+    if(meSnap.exists() && meSnap.data().referredBy) return toast('Already redeemed');
+    await updateDoc(doc(db,'users',user.uid),{referredBy:code});
+    const tRef = doc(db,'users',targetId);
+    const tSnap = await getDoc(tRef);
+    await updateDoc(tRef,{balance:(tSnap.data().balance||0)+100});
+    toast('Referral applied successfully! Referrer +₦100');
+    hideModal('referModal');
+  }catch(e){
+    console.error('Redeem error:', e);
+    toast('Redeem failed: ' + e.message);
+  }
+}
+
+/* --- Hook redeem buttons --- */
+safeAdd('refSend','click', ()=> redeemReferral(qs('inputRef')?.value?.trim()));
+safeAdd('redeemBtn','click', ()=> redeemReferral(qs('redeemCode')?.value?.trim()));
 
   </script>
 
