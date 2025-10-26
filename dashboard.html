@@ -1,888 +1,408 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dashboard | Watch & Earn</title>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Dashboard — Watch & Earn</title>
   <style>
-    body{font-family:sans-serif;background:#f5f5f5;margin:0;padding:0;}
-    .container{max-width:500px;margin:0 auto;padding:10px;}
-    .header{display:flex;justify-content:space-between;align-items:center;background:#111;color:#fff;padding:10px;border-radius:8px;}
-    .menu-btn{cursor:pointer;}
-    .hamb span{display:block;width:20px;height:2px;background:#fff;margin:4px 0;}
-    .title-center{text-align:center;font-weight:bold;}
-    .header-right{display:flex;align-items:center;gap:10px;}
-    .profile-circle img{width:30px;height:30px;border-radius:50%;}
-    .card{background:#fff;border-radius:12px;padding:10px;box-shadow:0 3px 8px rgba(0,0,0,0.1);}
-    .video-screen{width:100%;height:200px;background:#000;border-radius:8px;overflow:hidden;}
-    .controls{display:flex;justify-content:space-between;align-items:center;margin-top:10px;}
-    .counter{font-size:20px;font-weight:bold;}
-    .small{font-size:12px;color:#555;}
-    .skip-btn{background:#111;color:#fff;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;}
-    .bottom-actions{display:flex;justify-content:space-between;margin-top:10px;}
-    .big-box{background:#222;color:#fff;padding:10px;border-radius:6px;cursor:pointer;flex:1;text-align:center;margin:0 4px;}
-    .view-box{background:#eee;padding:10px;border-radius:6px;text-align:center;flex:0.5;}
-    .input{width:100%;padding:8px;border:1px solid #ccc;border-radius:6px;}
-    .btn{background:#111;color:#fff;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;}
-    .btn-ghost{background:transparent;border:1px solid #ccc;padding:8px 16px;border-radius:6px;cursor:pointer;}
-    .footer-note{text-align:center;font-size:12px;color:#777;margin-top:10px;}
-    .modal-backdrop{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:none;align-items:center;justify-content:center;z-index:99;}
-    .modal{background:#fff;border-radius:10px;padding:16px;max-width:320px;width:90%;}
+    body{font-family:Inter,system-ui,Arial;margin:0;background:#f5f7fb;color:#14303b}
+    .container{max-width:480px;margin:14px auto;padding:12px}
+    .header{display:flex;align-items:center;justify-content:space-between;background:#111;color:#fff;padding:10px;border-radius:10px}
+    .hamb span{display:block;width:20px;height:2px;background:#fff;margin:3px 0}
+    .card{background:#fff;border-radius:12px;padding:12px;margin-top:12px;box-shadow:0 10px 30px rgba(2,6,23,0.06)}
+    .video-screen{width:100%;height:220px;background:#000;border-radius:8px;overflow:hidden;display:flex;align-items:center;justify-content:center}
+    .controls{display:flex;justify-content:space-between;align-items:center;margin-top:10px}
+    .counter{font-size:20px;font-weight:700}
+    .small{font-size:12px;color:#6b7280}
+    .skip-btn,.btn{background:#111;color:#fff;border:none;padding:8px 12px;border-radius:8px;cursor:pointer}
+    .btn-ghost{background:transparent;border:1px solid #e5e7eb;padding:8px 12px;border-radius:8px;cursor:pointer}
+    .bottom-actions{display:flex;gap:8px;margin-top:10px}
+    .big-box{flex:1;background:#111;color:#fff;padding:10px;border-radius:8px;text-align:center;cursor:pointer}
+    .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.45);display:none;align-items:center;justify-content:center;z-index:999}
+    .modal{background:#fff;padding:14px;border-radius:10px;max-width:360px;width:94%}
+    .input{width:100%;padding:8px;border-radius:8px;border:1px solid #e5e7eb;margin-top:8px}
+    .footer-note{text-align:center;color:#6b7280;margin-top:12px;font-size:13px}
   </style>
 </head>
-
 <body>
   <div class="container">
     <div class="header">
-      <div class="menu-btn" id="menuBtn"><div class="hamb"><span></span><span></span><span></span></div></div>
-      <div class="title-center">Watch Video</div>
-      <div class="header-right">
-        <div class="ballance">₦<span id="balAmt">0</span></div>
-        <div class="profile-circle"><img src="image.png" alt="profile"></div>
+      <div id="menuBtn" style="cursor:pointer"><div class="hamb"><span></span><span></span><span></span></div></div>
+      <div style="font-weight:800">Watch Video</div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <div>₦<span id="balAmt">0</span></div>
+        <div><img src="image1.png" alt="profile" style="width:34px;height:34px;border-radius:50%"></div>
       </div>
     </div>
 
     <div class="card">
       <div class="video-screen" id="videoScreen">
-        <div id="videoPoster" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#fff">No video available</div>
+        <div id="videoPoster" style="color:#fff">No video available</div>
       </div>
 
       <div class="controls">
-        <div class="info">
-          <div><div class="small">Seconds of video</div><div class="counter" id="secondsLeft">00</div></div>
-          <div><div class="small">Coins to get</div><div class="counter" id="coinsToGet">00</div></div>
+        <div style="display:flex;gap:18px;align-items:center">
+          <div><div class="small">Seconds left</div><div class="counter" id="secondsLeft">00</div></div>
+          <div><div class="small">Coins</div><div class="counter" id="coinsToGet">00</div></div>
         </div>
-        <div><button class="skip-btn" id="skipBtn">Skip Video</button></div>
+        <div><button id="skipBtn" class="skip-btn">Skip</button></div>
       </div>
 
       <div class="bottom-actions">
-        <div class="big-box" id="promoteBtn">Promote video</div>
-        <div class="view-box">View</div>
-        <div class="big-box" id="othersBtn">Others</div>
+        <div id="promoteBtn" class="big-box">Promote</div>
+        <div style="background:#f3f4f6;padding:10px;border-radius:8px;display:flex;align-items:center;justify-content:center">View</div>
+        <div id="othersBtn" class="big-box">Others</div>
       </div>
     </div>
 
-    <div class="card" style="margin-top:14px">
+    <div class="card" style="margin-top:12px">
       <div style="display:flex;justify-content:space-between;align-items:center">
         <div class="small">Referral</div>
-        <div class="referral-code" id="myRef">--</div>
+        <div id="myRef" style="font-weight:700">----</div>
       </div>
       <div style="margin-top:10px">
-        <input class="input" id="redeemCode" placeholder="Enter referral code to redeem"/>
+        <input id="redeemCode" class="input" placeholder="Enter referral code to redeem"/>
         <div style="display:flex;gap:8px;margin-top:8px">
-          <button class="btn" id="redeemBtn">Send</button>
-          <button class="btn-ghost" id="shareRef">Share</button>
+          <button id="redeemBtn" class="btn">Send</button>
+          <button id="shareRef" class="btn-ghost">Share</button>
         </div>
       </div>
     </div>
 
-    <div class="footer-note">All activity is saved securely online.</div>
+    <div class="footer-note">All activity saved securely online.</div>
   </div>
 
-  <!-- Menu Modal (full) -->
-<div class="modal-backdrop" id="menuModal" style="display:none;align-items:center;justify-content:center;">
-  <div class="modal">
-    <h3>Menu</h3>
-
-    <div style="display:flex;flex-direction:column;gap:10px;margin-top:8px">
-      <button class="btn-ghost" id="referBtn">Refer a friend</button>
-      <button class="btn-ghost" id="consentBtn">Consent</button>
-      <button class="btn-ghost" id="privacyBtn">Privacy Policy</button>
-      <button class="btn-ghost" id="contactBtn">Contact us</button>
-      <button class="btn-ghost" id="logoutBtn">Logout</button>
-      <button class="btn-ghost" id="withdrawBtn">Withdraw</button>
-    </div>
-
-    <div style="text-align:right;margin-top:8px">
-      <button class="btn-ghost" id="closeMenu">Close</button>
+  <!-- Menu Modal -->
+  <div id="menuModal" class="modal-backdrop">
+    <div class="modal">
+      <h3>Menu</h3>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-top:8px">
+        <button id="referBtn" class="btn-ghost">Refer a friend</button>
+        <button id="consentBtn" class="btn-ghost">Consent</button>
+        <button id="privacyBtn" class="btn-ghost">Privacy Policy</button>
+        <button id="contactBtn" class="btn-ghost">Contact us</button>
+        <button id="withdrawBtn" class="btn-ghost">Withdraw</button>
+        <button id="logoutBtn" class="btn-ghost">Logout</button>
+      </div>
+      <div style="text-align:right;margin-top:8px"><button id="closeMenu" class="btn-ghost">Close</button></div>
     </div>
   </div>
-</div>
 
-
-  <!-- Refer Modal -->
-<div class="modal-backdrop" id="referModal" style="display:none;align-items:center;justify-content:center;">
-  <div class="modal">
-    <h3>Refer a friend</h3>
-    <div class="muted">Your referral code (copy/share): <strong id="showRef">----</strong></div>
-    <div style="margin-top:10px">
-      <input class="input" id="inputRef" placeholder="Enter referral to redeem"/>
-      <div style="display:flex;gap:8px;margin-top:10px">
-        <button class="btn" id="refSend">Send</button>
-        <button class="btn-ghost" id="refCancel">Cancel</button>
-        <button class="btn-ghost" id="shareRefSmall">Share</button>
+  <!-- Consent Modal -->
+  <div id="consentModal" class="modal-backdrop">
+    <div class="modal">
+      <h3>Consent</h3>
+      <div class="small">We store email, username, and viewing activity.</div>
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <button id="agreeBtn" class="btn">I agree</button>
+        <button id="consentClose" class="btn-ghost">Cancel</button>
       </div>
     </div>
   </div>
-</div>
 
-<!-- Consent Modal -->
-<div class="modal-backdrop" id="consentModal" style="display:none;align-items:center;justify-content:center;">
-  <div class="modal">
-    <h3>Consent</h3>
-    <div class="muted">Welcome to Watch and Earn. We store: <ol><li>Email address</li><li>Name</li><li>Channel link</li><li>Profile photo URL</li></ol></div>
-    <div style="display:flex;gap:8px;margin-top:12px">
-      <button class="btn" id="agreeBtn">I agree</button>
-      <button class="btn-ghost" id="consentClose">Cancel</button>
+  <!-- Refer Modal -->
+  <div id="referModal" class="modal-backdrop">
+    <div class="modal">
+      <h3>Refer a Friend</h3>
+      <div>Your referral code: <b id="showRef">----</b></div>
+      <input id="inputRef" class="input" placeholder="Enter referral code"/>
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <button id="refSend" class="btn">Send</button>
+        <button id="refCancel" class="btn-ghost">Cancel</button>
+        <button id="shareRefSmall" class="btn-ghost">Share</button>
+      </div>
     </div>
   </div>
-</div>
-  
 
-  <!-- Firebase SDK -->
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
-import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
-import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+  <!-- Single module script: Firebase, Auth, Firestore, YouTube + UI logic -->
+  <script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+  import {
+    getFirestore, collection, getDocs, doc, getDoc, setDoc, updateDoc
+  } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyCzFqbBdIMucN6A7zE6US6aZziyp_3lMB0",
-  authDomain: "watchandarn.firebaseapp.com",
-  projectId: "watchandarn",
-  storageBucket: "watchandarn.appspot.com",
-  messagingSenderId: "670181055241",
-  appId: "1:670181055241:web:974eabbaff1c2cbf28d1d8",
-  measurementId: "G-P1QGG9WV4R"
-};
+  // ---------- config ----------
+  const firebaseConfig = {
+    apiKey: "AIzaSyCzFqbBdIMucN6A7zE6US6aZziyp_3lMB0",
+    authDomain: "watchandarn.firebaseapp.com",
+    projectId: "watchandarn",
+    storageBucket: "watchandarn.appspot.com",
+    messagingSenderId: "670181055241",
+    appId: "1:670181055241:web:974eabbaff1c2cbf28d1d8",
+    measurementId: "G-P1QGG9WV4R"
+  };
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const auth = getAuth(app);
-
-const qs = id => document.getElementById(id);
-function toast(msg){
-  const el=document.createElement('div');
-  el.style.position='fixed';el.style.left='50%';el.style.top='18%';
-  el.style.transform='translateX(-50%)';el.style.background='#fff';
-  el.style.padding='10px 18px';el.style.borderRadius='10px';
-  el.style.boxShadow='0 5px 20px rgba(0,0,0,0.1)';el.style.zIndex='9999';
-  el.innerText=msg;document.body.appendChild(el);
-  setTimeout(()=>el.remove(),2000);
-}
-
-let user=null, videos=[], idx=0, ytPlayer=null, countdown=0, playing=false, rewarded=false, countdownInterval=null;
-
-onAuthStateChanged(auth, async (u)=>{
-  if(!u){ window.location.href='index.html'; return; }
-  user=u;
-  await loadUserData();
-  await loadVideos();
-});
-
-// ---------------- Missing menu handlers & referral/consent/contact fixes ----------------
-// Assumes: `user` variable (firebase user), `db` (Firestore), and helper qs() are already defined
-
-// small helper to show/hide modal/backdrop
-function showModal(id){ const e=qs(id); if(e) e.style.display='flex'; }
-function hideModal(id){ const e=qs(id); if(e) e.style.display='none'; }
-
-// Ensure menu open/close exist (id names used earlier)
-qs('menuBtn')?.addEventListener('click', ()=> showModal('menuModal'));
-qs('closeMenu')?.addEventListener('click', ()=> hideModal('menuModal'));
-
-// NAV buttons
-qs('withdrawBtn')?.addEventListener('click', ()=> {
-  hideModal('menuModal');
-  window.location.href = 'withdraw.html';
-});
-
-// logout already existed; re-attach to be safe
-qs('logoutBtn')?.addEventListener('click', async ()=>{
-  try{ await signOut(auth); window.location.href='index.html'; }
-  catch(e){ toast('Logout error'); }
-});
-
-// Contact us -> open WhatsApp to your number
-qs('contactBtn')?.addEventListener('click', ()=>{
-  hideModal('menuModal');
-  const msg = encodeURIComponent('Hello, I need help with Watch & Earn. My email: ' + (user?.email || ''));
-  // direct to your number
-  window.open('https://wa.me/2347031935351?text=' + msg, '_blank');
-});
-
-// Privacy -> go to privacy.html
-qs('privacyBtn')?.addEventListener('click', ()=>{
-  hideModal('menuModal');
-  window.location.href = 'privacy.html';
-});
-
-// Consent -> open consent modal
-qs('consentBtn')?.addEventListener('click', ()=>{
-  hideModal('menuModal');
-  showModal('consentModal');
-});
-qs('consentClose')?.addEventListener('click', ()=> hideModal('consentModal'));
-
-// Agree button: write consent to Firestore under users/{uid}.consent = true
-qs('agreeBtn')?.addEventListener('click', async ()=>{
-  try{
-    if(!user) return toast('Not signed in');
-    await updateDoc(doc(db,'users',user.uid), { consent: true });
-    toast('Consent saved');
-    hideModal('consentModal');
-  }catch(err){ console.error(err); toast('Consent failed'); }
-});
-
-document.getElementById('withdrawBtn').addEventListener('click', function(){
-  window.location.href = 'withdraw.html';
-});
-    
-    
-    
-// ---------------- Referral tab handlers ----------------
-// Open refer modal from menu
-qs('referBtn')?.addEventListener('click', ()=>{
-  hideModal('menuModal');
-  // ensure referral code is visible (username slice first 4)
-  (async ()=>{
-    try{
-      if(!user) return toast('Not signed in');
-      const snap = await getDoc(doc(db,'users',user.uid));
-      let refCode = user.uid.slice(0,4);
-      if(snap.exists()){
-        const d = snap.data();
-        if(d.username) refCode = String(d.username).slice(0,4);
-        else if(d.refCode) refCode = d.refCode;
-      }
-      qs('showRef').innerText = refCode;
-      showModal('referModal');
-    }catch(e){ console.error(e); toast('Could not load ref'); }
-  })();
-});
-
-// Close/refCancel
-qs('refCancel')?.addEventListener('click', ()=> hideModal('referModal'));
-
-// Share referral button (small)
-qs('shareRefSmall')?.addEventListener('click', ()=>{
-  const code = qs('showRef')?.innerText || '';
-  if(!code) return toast('No referral code');
-  const msg = encodeURIComponent('Join Watch & Earn using my referral code: ' + code);
-  window.open('https://wa.me/?text=' + msg, '_blank');
-});
-
-// Redeem referral (refSend) -- you previously had redeem logic; here we attempt to credit the referrer
-qs('refSend')?.addEventListener('click', async ()=>{
-  const code = qs('inputRef')?.value.trim();
-  if(!code) return toast('Enter code');
-  try{
-    // find user with refCode == code
-    const qSnap = await getDocs(collection(db,'users'));
-    let targetDoc = null;
-    qSnap.forEach(d => { if(d.data().refCode === code) targetDoc = { id: d.id, data: d.data() }; });
-    if(!targetDoc){ toast('Invalid code'); return; }
-    // ensure current user hasn't redeemed before
-    const curSnap = await getDoc(doc(db,'users',user.uid));
-    if(curSnap.exists() && curSnap.data().referredBy){ toast('Already redeemed'); return; }
-    // set referredBy for current user and credit referrer ₦100
-    await updateDoc(doc(db,'users',user.uid), { referredBy: code });
-    await updateDoc(doc(db,'users',targetDoc.id), { balance: (targetDoc.data.balance||0) + 100 });
-    toast('Referral applied; referrer +₦100');
-    hideModal('referModal');
-  }catch(err){ console.error(err); toast('Redeem failed'); }
-});
-    
-    
-/* --------- Load user + referral --------- */
-async function loadUserData(){
-  const ref=doc(db,'users',user.uid);
-  const snap=await getDoc(ref);
-  if(snap.exists()){
-    const data=snap.data();
-    qs('balAmt').innerText=data.balance||0;
-    qs('myRef').innerText=data.refCode||data.username?.slice(0,4)||user.uid.slice(0,4);
-  }else{
-    const uname=user.email.split('@')[0];
-    await setDoc(ref,{username:uname,balance:0,refCode:uname.slice(0,4)});
-    qs('balAmt').innerText=0;
-    qs('myRef').innerText=uname.slice(0,4);
+  // ---------- helpers ----------
+  const qs = id => document.getElementById(id);
+  function toast(msg){
+    const el = document.createElement('div');
+    el.style.position='fixed';el.style.left='50%';el.style.top='16%';
+    el.style.transform='translateX(-50%)';el.style.background='#fff';
+    el.style.padding='10px 14px';el.style.borderRadius='8px';
+    el.style.boxShadow='0 8px 30px rgba(0,0,0,0.12)';el.style.zIndex=9999;
+    el.innerText = msg; document.body.appendChild(el);
+    setTimeout(()=>el.remove(),1800);
   }
-}
+  function showModal(id){ const e=qs(id); if(e) e.style.display='flex'; }
+  function hideModal(id){ const e=qs(id); if(e) e.style.display='none'; }
+  function safeAdd(id, evt, fn){ const el = qs(id); if(el) el.addEventListener(evt, fn); }
 
-/* --------- Load videos --------- */
-async function loadVideos(){
-  const vRef=collection(db,'videos');
-  const vSnap=await getDocs(vRef);
-  videos=vSnap.docs.map(d=>d.data());
-  if(videos.length===0){
-<script type="module">
-/* dashboard - Firebase + YouTube player + menu/referral/consent handled here */
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
-import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
-import {
-  getFirestore, doc, getDoc, setDoc, updateDoc, collection, getDocs
-} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+  // ---------- state ----------
+  let user = null;
+  let videos = [];
+  let idx = 0;
+  let ytPlayer = null;
+  let playing = false;
+  let rewarded = false;
+  let countdown = 0;
+  let countdownInterval = null;
 
-/* ---------- Firebase config (keep same in all files) ---------- */
-const firebaseConfig = {
-  apiKey: "AIzaSyCzFqbBdIMucN6A7zE6US6aZziyp_3lMB0",
-  authDomain: "watchandarn.firebaseapp.com",
-  projectId: "watchandarn",
-  storageBucket: "watchandarn.appspot.com",
-  messagingSenderId: "670181055241",
-  appId: "1:670181055241:web:974eabbaff1c2cbf28d1d8",
-  measurementId: "G-P1QGG9WV4R"
-};
+  // ---------- wait for YT API ready (promise) ----------
+  let YTReady = new Promise((resolve) => {
+    if(window.YT && window.YT.Player) return resolve(window.YT);
+    const prev = window.onYouTubeIframeAPIReady;
+    window.onYouTubeIframeAPIReady = function(){
+      if(prev) try{ prev(); }catch(e){}
+      resolve(window.YT);
+    };
+  });
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+  // ---------- auth ----------
+  onAuthStateChanged(auth, async (u) => {
+    if(!u){ window.location.href = 'index.html'; return; }
+    user = u;
+    await loadUser();
+    await loadVideos();
+    attachMenuHandlers(); // after user loaded attach handlers needing user
+  });
 
-/* ---------- Helpers ---------- */
-const qs = id => document.getElementById(id);
-function toast(msg){
-  const el = document.createElement('div');
-  el.style.position='fixed'; el.style.left='50%'; el.style.top='18%';
-  el.style.transform='translateX(-50%)'; el.style.background='#fff';
-  el.style.padding='10px 18px'; el.style.borderRadius='10px';
-  el.style.boxShadow='0 5px 20px rgba(0,0,0,0.08)'; el.style.zIndex='9999';
-  el.innerText = msg; document.body.appendChild(el);
-  setTimeout(()=>el.remove(), 2000);
-}
-function showModal(id){ const e = qs(id); if(e) e.style.display = 'flex'; }
-function hideModal(id){ const e = qs(id); if(e) e.style.display = 'none'; }
+  // ---------- load user ----------
+  async function loadUser(){
+    try{
+      const ref = doc(db,'users',user.uid);
+      const snap = await getDoc(ref);
+      if(!snap.exists()){
+        const uname = user.email ? user.email.split('@')[0] : user.uid.slice(0,6);
+        await setDoc(ref, { username: uname, email: user.email || '', balance: 0, refCode: uname.slice(0,4) });
+        qs('balAmt').innerText = 0;
+        qs('myRef').innerText = uname.slice(0,4);
+      } else {
+        const d = snap.data();
+        qs('balAmt').innerText = d.balance || 0;
+        qs('myRef').innerText = d.refCode || (d.username ? String(d.username).slice(0,4) : user.uid.slice(0,4));
+      }
+    }catch(e){ console.error(e); toast('Failed to load user'); }
+  }
 
-/* ---------- State ---------- */
-let user = null;
-let videos = [];
-let idx = 0;
-let ytPlayer = null;
-let countdown = 0;
-let countdownInterval = null;
-let playing = false;
-let rewarded = false;
+  // ---------- load videos ----------
+  async function loadVideos(){
+    try{
+      const col = collection(db,'videos');
+      const snap = await getDocs(col);
+      videos = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      if(!videos.length){
+        qs('videoScreen').innerHTML = '<div style="color:#fff">No video available</div>';
+        qs('secondsLeft').innerText = '00';
+        qs('coinsToGet').innerText = '00';
+        return;
+      }
+      idx = 0;
+      await YTReady; // ensure YT API loaded
+      loadCurrent();
+    }catch(e){ console.error(e); toast('Failed to load videos'); }
+  }
 
-/* ---------- Auth state ---------- */
-onAuthStateChanged(auth, async (u) => {
-  if(!u){ window.location.href = 'index.html'; return; }
-  user = u;
-  await loadUserData();
-  await loadVideos();
-});
-
-/* ---------- Load user profile from Firestore ---------- */
-async function loadUserData(){
-  try{
-    const ref = doc(db,'users', user.uid);
-    const snap = await getDoc(ref);
-    if(snap.exists()){
-      const data = snap.data();
-      qs('balAmt').innerText = (data.balance||0);
-      qs('myRef').innerText = (data.refCode || (data.username ? String(data.username).slice(0,4) : user.uid.slice(0,4)));
-    } else {
-      // create basic record if missing
-      const uname = user.email.split('@')[0];
-      await setDoc(ref, { username: uname, email: user.email, balance: 0, refCode: uname.slice(0,4) });
-      qs('balAmt').innerText = 0;
-      qs('myRef').innerText = uname.slice(0,4);
-    }
-  }catch(e){ console.error('loadUserData', e); toast('Unable to load user'); }
-}
-
-/* ---------- Videos (from Firestore) ---------- */
-async function loadVideos(){
-  try{
-    const vCol = collection(db,'videos');
-    const snap = await getDocs(vCol);
-    videos = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    if(!videos || videos.length === 0){
-      qs('videoScreen').innerHTML = '<div style="height:100%;display:flex;align-items:center;justify-content:center;color:#fff">No video available</div>';
-      qs('secondsLeft').innerText = '00';
-      qs('coinsToGet').innerText = '00';
-      return;
-    }
-    idx = 0;
-    loadCurrent();
-  }catch(e){ console.error('loadVideos', e); toast('Failed to load videos'); }
-}
-
-/* ---------- YouTube helper ---------- */
-function extractYouTubeId(url){
-  if(!url) return '';
-  const m = url.match(/(?:v=|youtu\.be\/|\/)([0-9A-Za-z_-]{11})/);
-<script type="module">
-/* dashboard - single cleaned script: Firebase + Auth + Firestore + YouTube player + UI handlers */
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
-import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
-import {
-  getFirestore, doc, getDoc, setDoc, updateDoc,
-  collection, getDocs
-} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
-
-/* ---------- Firebase config (same across files) ---------- */
-const firebaseConfig = {
-  apiKey: "AIzaSyCzFqbBdIMucN6A7zE6US6aZziyp_3lMB0",
-  authDomain: "watchandarn.firebaseapp.com",
-  projectId: "watchandarn",
-  storageBucket: "watchandarn.appspot.com",
-  messagingSenderId: "670181055241",
-  appId: "1:670181055241:web:974eabbaff1c2cbf28d1d8",
-  measurementId: "G-P1QGG9WV4R"
-};
-
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-
-/* ---------- DOM helpers ---------- */
-const qs = id => document.getElementById(id);
-function toast(msg){
-  const el = document.createElement('div');
-  el.style.position='fixed'; el.style.left='50%'; el.style.top='18%';
-  el.style.transform='translateX(-50%)'; el.style.background='#fff';
-  el.style.padding='10px 18px'; el.style.borderRadius='10px';
-  el.style.boxShadow='0 5px 20px rgba(0,0,0,0.08)'; el.style.zIndex='9999';
-  el.innerText = msg;
-  document.body.appendChild(el);
-  setTimeout(()=>el.remove(),2000);
-}
-function showModal(id){ const e = qs(id); if(e) e.style.display = 'flex'; }
-function hideModal(id){ const e = qs(id); if(e) e.style.display = 'none'; }
-
-/* ---------- state ---------- */
-let user = null;
-let videos = [];
-let idx = 0;
-let ytPlayer = null;
-let countdown = 0;
-let countdownInterval = null;
-let playing = false;
-let rewarded = false;
-
-/* ---------- ensure UI elements exist before attaching listeners ---------- */
-function safeAdd(id, evt, fn){
-  const el = qs(id);
-  if(el) el.addEventListener(evt, fn);
-}
-
-/* ---------- Auth state ---------- */
-onAuthStateChanged(auth, async (u) => {
-  if(!u){ window.location.href = 'index.html'; return; }
-  user = u;
-  await loadUserData();
-  await loadVideos();
-});
-
-/* ---------- Load user profile from Firestore ---------- */
-async function loadUserData(){
-  try{
-    const ref = doc(db,'users', user.uid);
-    const snap = await getDoc(ref);
-    if(snap.exists()){
-      const data = snap.data();
-      if(qs('balAmt')) qs('balAmt').innerText = (data.balance||0);
-      if(qs('myRef')) qs('myRef').innerText = (data.refCode || (data.username ? String(data.username).slice(0,4) : user.uid.slice(0,4)));
-    } else {
-      const uname = user.email ? user.email.split('@')[0] : user.uid.slice(0,6);
-      await setDoc(ref, { username: uname, email: user.email, balance: 0, refCode: uname.slice(0,4) });
-      if(qs('balAmt')) qs('balAmt').innerText = 0;
-      if(qs('myRef')) qs('myRef').innerText = uname.slice(0,4);
-    }
-  }catch(e){ console.error('loadUserData', e); toast('Unable to load user'); }
-}
-
-/* ---------- Videos (from Firestore) ---------- */
-async function loadVideos(){
-  try{
-    const vCol = collection(db,'videos');
-    const snap = await getDocs(vCol);
-    videos = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    if(!videos || videos.length === 0){
-      if(qs('videoScreen')) qs('videoScreen').innerHTML = '<div style="height:100%;display:flex;align-items:center;justify-content:center;color:#fff">No video available</div>';
-      if(qs('secondsLeft')) qs('secondsLeft').innerText = '00';
-      if(qs('coinsToGet')) qs('coinsToGet').innerText = '00';
-      return;
-    }
-    idx = 0;
-    loadCurrent();
-  }catch(e){ console.error('loadVideos', e); toast('Failed to load videos'); }
-}
-
-/* ---------- YouTube helper ---------- */
-function extractYouTubeId(url){
-  if(!url) return '';
-  try{
-    const m = url.match(/(?:v=|youtu\.be\/|\/)([0-9A-Za-z_-]{11})/);
+  // ---------- YT helpers ----------
+  function extractYouTubeId(url){
+    if(!url) return '';
+    const m = String(url).match(/(?:v=|youtu\.be\/|\/)([0-9A-Za-z_-]{11})/);
     return m ? m[1] : url;
-  }catch(e){ return url; }
-}
-
-/* ---------- Player & countdown ---------- */
-function loadCurrent(){
-  const v = videos[idx];
-  if(!v){ toast('No video'); return; }
-  const vidId = extractYouTubeId(v.url);
-  countdown = Number(v.seconds || 10);
-  if(qs('secondsLeft')) qs('secondsLeft').innerText = countdown;
-  if(qs('coinsToGet')) qs('coinsToGet').innerText = Number(v.coins || 0);
-  rewarded = false;
-  if(qs('videoScreen')) qs('videoScreen').innerHTML = '<div id="player"></div>';
-  if(ytPlayer && ytPlayer.destroy) try{ ytPlayer.destroy(); }catch(e){}
-  // create YT player (YT API script must also be present once on the page)
-  ytPlayer = new YT.Player('player', {
-    height:'100%', width:'100%', videoId: vidId,
-    playerVars: { autoplay:1, playsinline:1, rel:0, enablejsapi:1, modestbranding:1 },
-    events: { 'onStateChange': onPlayerStateChange }
-  });
-}
-
-function onPlayerStateChange(event){
-  const state = event.data;
-  // 1 playing, 2 paused, 3 buffering, 0 ended
-  if(state === YT.PlayerState.PLAYING){
-    playing = true; startCountdown();
-  } else if(state === YT.PlayerState.PAUSED || state === YT.PlayerState.BUFFERING){
-    playing = false; clearInterval(countdownInterval);
-  } else if(state === YT.PlayerState.ENDED){
-    playing = false; clearInterval(countdownInterval);
-    if(!rewarded){ rewardUser(); nextVideo(); }
   }
-}
 
-function startCountdown(){
-  clearInterval(countdownInterval);
-  countdownInterval = setInterval(()=>{
-    if(!playing) return;
-    countdown--;
+  function loadCurrent(){
+    const v = videos[idx];
+    if(!v){ toast('No video'); return; }
+    const vidId = extractYouTubeId(v.url);
+    countdown = Number(v.seconds || 10);
     if(qs('secondsLeft')) qs('secondsLeft').innerText = countdown;
-    if(countdown <= 0){
+    if(qs('coinsToGet')) qs('coinsToGet').innerText = Number(v.coins || 0);
+    rewarded = false;
+
+    // ensure player container
+    qs('videoScreen').innerHTML = '<div id="player" style="width:100%;height:100%;"></div>';
+
+    // destroy old player if exists
+    try{ if(ytPlayer && typeof ytPlayer.destroy === 'function') ytPlayer.destroy(); }catch(e){}
+
+    // create new YT player
+    try{
+      ytPlayer = new YT.Player('player', {
+        height: '100%', width: '100%', videoId: vidId,
+        playerVars: { autoplay: 1, playsinline: 1, rel: 0, enablejsapi: 1, modestbranding: 1 },
+        events: {
+          onStateChange: onPlayerStateChange,
+          onReady: function(event){
+            // attempt to play
+            try{ event.target.playVideo(); }catch(e){}
+          }
+        }
+      });
+    }catch(e){
+      console.error('YT create error', e);
+      qs('videoScreen').innerHTML = '<div style="color:#fff">Video failed to load</div>';
+    }
+  }
+
+  function onPlayerStateChange(ev){
+    const state = ev.data;
+    // YT.PlayerState: -1 (unstarted), 0 ended, 1 playing, 2 paused, 3 buffering, 5 cued
+    if(state === YT.PlayerState.PLAYING){
+      playing = true;
+      startCountdown();
+    } else if(state === YT.PlayerState.PAUSED || state === YT.PlayerState.BUFFERING){
+      playing = false;
+      clearInterval(countdownInterval);
+    } else if(state === YT.PlayerState.ENDED){
+      playing = false;
       clearInterval(countdownInterval);
       if(!rewarded){ rewardUser(); nextVideo(); }
     }
-  },1000);
-}
-
-/* ---------- Reward (Firestore) ---------- */
-async function rewardUser(){
-  try{
-    const v = videos[idx] || {};
-    const coins = Number(v.coins || 0);
-    const ref = doc(db,'users', user.uid);
-    const snap = await getDoc(ref);
-    let bal = snap.exists() ? (snap.data().balance || 0) : 0;
-    bal = Number(bal) + coins;
-    await updateDoc(ref, { balance: bal });
-    if(qs('balAmt')) qs('balAmt').innerText = bal;
-    rewarded = true;
-    toast('+' + coins + ' coins added');
-  } catch(err){
-    console.error('rewardUser', err);
-    toast('Reward failed');
   }
-}
 
-function nextVideo(){
-  try{ if(ytPlayer && ytPlayer.stopVideo) ytPlayer.stopVideo(); }catch(e){}
-  clearInterval(countdownInterval);
-  playing = false; rewarded = false;
-  idx = (idx + 1) % videos.length;
-  setTimeout(loadCurrent, 500);<script type="module">
-/* Full fixed dashboard script — paste into dashboard.html (replace any other dashboard scripts) */
-
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
-import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
-import {
-  getFirestore, doc, getDoc, setDoc, updateDoc, collection, getDocs
-} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
-
-/* ---------- Firebase config ---------- */
-const firebaseConfig = {
-  apiKey: "AIzaSyCzFqbBdIMucN6A7zE6US6aZziyp_3lMB0",
-  authDomain: "watchandarn.firebaseapp.com",
-  projectId: "watchandarn",
-  storageBucket: "watchandarn.appspot.com",
-  messagingSenderId: "670181055241",
-  appId: "1:670181055241:web:974eabbaff1c2cbf28d1d8",
-  measurementId: "G-P1QGG9WV4R"
-};
-
-/* ---------- Init ---------- */
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-
-/* ---------- Helpers ---------- */
-const qs = id => document.getElementById(id);
-function toast(msg){
-  const el = document.createElement('div');
-  el.style.position='fixed';
-  el.style.left='50%';
-  el.style.top='18%';
-  el.style.transform='translateX(-50%)';
-  el.style.background='#fff';
-  el.style.padding='10px 16px';
-  el.style.borderRadius='10px';
-  el.style.boxShadow='0 8px 30px rgba(0,0,0,0.12)';
-  el.style.zIndex='9999';
-  el.innerText = msg;
-  document.body.appendChild(el);
-  setTimeout(()=>el.remove(),2000);
-}
-function showModal(id){ const e = qs(id); if(e) e.style.display = 'flex'; }
-function hideModal(id){ const e = qs(id); if(e) e.style.display = 'none'; }
-
-/* safeAdd — attach when element exists */
-function safeAdd(id, evt, fn){
-  const el = qs(id);
-  if(el) el.addEventListener(evt, fn);
-}
-
-/* ---------- State ---------- */
-let user = null;
-let videos = [];
-let idx = 0;
-let ytPlayer = null;
-let countdown = 0;
-let countdownInterval = null;
-let playing = false;
-let rewarded = false;
-
-/* ---------- Ensure script runs after DOM is ready ---------- */
-document.addEventListener('DOMContentLoaded', () => {
-
-  // Make sure modals are hidden initially
-  ['menuModal','referModal','consentModal'].forEach(id=>{
-    const el = qs(id);
-    if(el) el.style.display = 'none';
-  });
-
-  // Basic menu open/close (3-dash)
-  safeAdd('menuBtn','click', ()=> showModal('menuModal'));
-  safeAdd('closeMenu','click', ()=> hideModal('menuModal'));
-
-  // Attach UI handlers that don't need auth first
-  safeAdd('closeMenu','click', ()=> hideModal('menuModal'));
-  safeAdd('skipBtn','click', ()=> nextVideo());
-  safeAdd('promoteBtn','click', ()=> {
-    if(!videos[idx]) return toast('No video to promote');
-    // message: you can edit the template
-    const msg = encodeURIComponent("Check this video: " + (videos[idx].url || ''));
-    window.open('https://wa.me/?text=' + msg, '_blank');
-  });
-
-  // menu buttons placeholders — final wiring happens after auth load
-  // (we still attach these so clicks at least have handlers)
-  safeAdd('withdrawBtn','click', ()=> { hideModal('menuModal'); window.location.href = 'withdraw.html'; });
-  safeAdd('privacyBtn','click', ()=> { hideModal('menuModal'); window.location.href = 'privacy.html'; });
-  safeAdd('contactBtn','click', ()=> {
-    hideModal('menuModal');
-    window.open('https://wa.me/2347031935351?text=' + encodeURIComponent('Hello, I need help with Watch & Earn.'), '_blank');
-  });
-  safeAdd('consentClose','click', ()=> hideModal('consentModal'));
-  safeAdd('refCancel','click', ()=> hideModal('referModal'));
-  safeAdd('shareRef','click', ()=> {
-    const code = qs('myRef')?.innerText || '';
-    if(!code) return toast('No ref code');
-    window.open(`https://wa.me/?text=${encodeURIComponent('Join Watch & Earn using my referral code: ' + code)}`, '_blank');
-  });
-
-}); // end DOMContentLoaded
-
-/* ---------- Auth state & load user + videos ---------- */
-onAuthStateChanged(auth, async (u) => {
-  if(!u){
-    // not logged in -> redirect to index
-    try{ window.location.href = 'index.html'; }catch(e){}
-    return;
-  }
-  user = u;
-  await loadUserData();
-  await loadVideos();
-  // now attach menu actions that rely on user/auth
-  attachAuthMenuActions();
-});
-
-/* attach menu actions that use auth/firestore/user data */
-function attachAuthMenuActions(){
-  safeAdd('logoutBtn','click', async ()=>{
-    try{ await signOut(auth); window.location.href = 'index.html'; }catch(e){ toast('Logout failed'); }
-  });
-  safeAdd('withdrawBtn','click', ()=> { hideModal('menuModal'); window.location.href = 'withdraw.html'; });
-
-  safeAdd('consentBtn','click', ()=> { hideModal('menuModal'); showModal('consentModal'); });
-  safeAdd('agreeBtn','click', async ()=>{
-    try{ await updateDoc(doc(db,'users',user.uid), { consent: true }); toast('Consent saved'); hideModal('consentModal'); }
-    catch(e){ console.error(e); toast('Consent failed'); }
-  });
-
-  safeAdd('referBtn','click', async ()=>{
-    hideModal('menuModal');
-    try{
-      const snap = await getDoc(doc(db,'users',user.uid));
-      let code = user.uid.slice(0,4);
-      if(snap.exists()){
-        const d = snap.data();
-        if(d.username) code = String(d.username).slice(0,4);
-        else if(d.refCode) code = d.refCode;
+  function startCountdown(){
+    clearInterval(countdownInterval);
+    countdownInterval = setInterval(()=>{
+      if(!playing) return;
+      countdown--;
+      if(qs('secondsLeft')) qs('secondsLeft').innerText = countdown;
+      if(countdown <= 0){
+        clearInterval(countdownInterval);
+        if(!rewarded){ rewardUser(); nextVideo(); }
       }
-      if(qs('showRef')) qs('showRef').innerText = code;
-      showModal('referModal');
-    }catch(e){ console.error(e); toast('Could not load ref'); }
-  });
+    }, 1000);
+  }
 
-  // Redeem in modal
-  safeAdd('refSend','click', async ()=>{
-    const code = qs('inputRef')?.value?.trim();
-    if(!code) return toast('Enter code');
+  async function rewardUser(){
     try{
-      const all = await getDocs(collection(db,'users'));
-      let targetId = null, targetData = null;
-      all.forEach(d => { if(d.data().refCode === code){ targetId = d.id; targetData = d.data(); }});
-      if(!targetId) return toast('Invalid code');
-      const meSnap = await getDoc(doc(db,'users',user.uid));
-      if(meSnap.exists() && meSnap.data().referredBy) return toast('Already redeemed');
-      await updateDoc(doc(db,'users',user.uid), { referredBy: code });
-      await updateDoc(doc(db,'users',targetId), { balance: (targetData.balance||0) + 100 });
-      toast('Referral applied; referrer +₦100');
-      hideModal('referModal');
-    }catch(e){ console.error(e); toast('Redeem failed'); }
-  });
+      const v = videos[idx] || {};
+      const coins = Number(v.coins || 0);
+      const ref = doc(db,'users',user.uid);
+      const snap = await getDoc(ref);
+      let bal = snap.exists() ? (snap.data().balance || 0) : 0;
+      bal = Number(bal) + coins;
+      await updateDoc(ref, { balance: bal });
+      if(qs('balAmt')) qs('balAmt').innerText = bal;
+      rewarded = true;
+      toast('+' + coins + ' coins added');
+    }catch(e){ console.error('rewardUser', e); toast('Reward failed'); }
+  }
 
-  // Redeem from top card
-  safeAdd('redeemBtn','click', async ()=>{
-    const code = qs('redeemCode')?.value?.trim();
-    if(!code) return toast('Enter code');
-    try{
-      const all = await getDocs(collection(db,'users'));
-      let targetId = null;
-      all.forEach(d => { if(d.data().refCode === code) targetId = d.id; });
-      if(!targetId) return toast('Invalid code');
-      const meSnap = await getDoc(doc(db,'users',user.uid));
-      if(meSnap.exists() && meSnap.data().referredBy) return toast('Already redeemed');
-      await updateDoc(doc(db,'users',user.uid), { referredBy: code });
-      const tSnap = await getDoc(doc(db,'users',targetId));
-      await updateDoc(doc(db,'users',targetId), { balance: (tSnap.data().balance||0) + 100 });
-      toast('Referral redeemed');
-    }catch(e){ console.error(e); toast('Redeem failed'); }
-  });
+  function nextVideo(){
+    try{ if(ytPlayer && ytPlayer.stopVideo) ytPlayer.stopVideo(); }catch(e){}
+    clearInterval(countdownInterval);
+    playing = false; rewarded = false;
+    idx = (idx + 1) % videos.length;
+    setTimeout(loadCurrent, 350);
+  }
+  window.nextVideo = nextVideo; // expose for debug / external calls
 
-  // Share small refer
-  safeAdd('shareRefSmall','click', ()=> {
-    const code = qs('showRef')?.innerText || '';
-    if(!code) return toast('No ref code');
-    window.open(`https://wa.me/?text=${encodeURIComponent('Join Watch & Earn using my referral code: ' + code)}`, '_blank');
-  });
-}
-
-/* ---------- Load user data ---------- */
-async function loadUserData(){
-  try{
-    const ref = doc(db,'users',user.uid);
-    const snap = await getDoc(ref);
-    if(snap.exists()){
-      const data = snap.data();
-      if(qs('balAmt')) qs('balAmt').innerText = data.balance || 0;
-      if(qs('myRef')) qs('myRef').innerText = data.refCode || (data.username ? String(data.username).slice(0,4) : user.uid.slice(0,4));
-    } else {
-      const uname = user.email ? user.email.split('@')[0] : user.uid.slice(0,6);
-      await setDoc(ref, { username: uname, email: user.email, balance: 0, refCode: uname.slice(0,4) });
-      if(qs('balAmt')) qs('balAmt').innerText = 0;
-      if(qs('myRef')) qs('myRef').innerText = uname.slice(0,4);
-    }
-  }catch(e){ console.error(e); toast('Failed to load profile'); }
-}
-
-/* ---------- Load videos ---------- */
-async function loadVideos(){
-  try{
-    const vRef = collection(db,'videos');
-    const vSnap = await getDocs(vRef);
-    videos = vSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-    if(!videos || videos.length === 0){
-      if(qs('videoScreen')) qs('videoScreen').innerHTML = '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#fff">No video available</div>';
-      if(qs('secondsLeft')) qs('secondsLeft').innerText = '00';
-      if(qs('coinsToGet')) qs('coinsToGet').innerText = '00';
-      return;
-    }
-    idx = 0;
-    loadCurrent();
-  }catch(e){ console.error(e); toast('Failed to load videos'); }
-}
-
-/* ---------- YouTube helpers & player ---------- */
-function extractYouTubeId(url){
-  if(!url) return '';
-  const m = String(url).match(/(?:v=|youtu\.be\/|\/)([0-9A-Za-z_-]{11})/);
-  return m ? m[1] : url;
-}
-
-function loadCurrent(){
-  const v = videos[idx];
-  if(!v) return toast('No video');
-  const vidId = extractYouTubeId(v.url);
-  countdown = Number(v.seconds || 10);
-  if(qs('secondsLeft')) qs('secondsLeft').innerText = countdown;
-  if(qs('coinsToGet')) qs('coinsToGet').innerText = Number(v.coins || 0);
-  rewarded = false;
-  if(qs('videoScreen')) qs('videoScreen').innerHTML = '<div id="player"></div>';
-  if(ytPlayer && typeof ytPlayer.destroy === 'function') try{ ytPlayer.destroy(); }catch(e){}
-  try{
-    ytPlayer = new YT.Player('player', {
-      height:'100%', width:'100%', videoId: vidId,
-      playerVars: { autoplay:1, playsinline:1, rel:0, enablejsapi:1, modestbranding:1 },
-      events: { 'onStateChange': onPlayerStateChange }
+  // ---------- basic UI handlers (these don't need auth) ----------
+  document.addEventListener('DOMContentLoaded', () => {
+    safeAdd('menuBtn','click', ()=> showModal('menuModal'));
+    safeAdd('closeMenu','click', ()=> hideModal('menuModal'));
+    safeAdd('skipBtn','click', ()=> nextVideo());
+    safeAdd('promoteBtn','click', ()=> {
+      if(!videos[idx]) return toast('No video to promote');
+      // include referral code if available
+      const refCode = qs('myRef')?.innerText || '';
+      const msg = encodeURIComponent(`Check this video: ${videos[idx].url}\nJoin with my referral code: ${refCode}`);
+      window.open('https://wa.me/?text=' + msg, '_blank');
     });
-  }catch(e){
-    console.error('YT player init failed', e);
-    if(qs('videoScreen')) qs('videoScreen').innerHTML = '<div style="height:100%;display:flex;align-items:center;justify-content:center;color:#fff">Video failed to load</div>';
-  }
-}
+  });
 
-function onPlayerStateChange(event){
-  const state = event.data;
-  if(state === YT.PlayerState.PLAYING){
-    playing = true; startCountdown();
-  } else if(state === YT.PlayerState.PAUSED || state === YT.PlayerState.BUFFERING){
-    playing = false; clearInterval(countdownInterval);
-  } else if(state === YT.PlayerState.ENDED){
-    playing = false; clearInterval(countdownInterval);
-    if(!rewarded){ rewardUser(); nextVideo(); }
-  }
-}
+  // ---------- attach handlers that need user/auth/firestore after auth ready ----------
+  function attachMenuHandlers(){
+    safeAdd('withdrawBtn','click', ()=> { hideModal('menuModal'); window.location.href = 'withdraw.html'; });
+    safeAdd('privacyBtn','click', ()=> { hideModal('menuModal'); window.location.href = 'privacy.html'; });
+    safeAdd('contactBtn','click', ()=> { hideModal('menuModal'); window.open('https://wa.me/2347031935351?text=' + encodeURIComponent('Hello, I need help with Watch & Earn. My email: ' + (user.email || '')), '_blank'); });
+    safeAdd('logoutBtn','click', async ()=> { try{ await signOut(auth); window.location.href='index.html'; }catch(e){ toast('Logout failed'); } });
 
-function startCountdown(){
-  clearInterval(countdownInterval);
-  countdownInterval = setInterval(()=>{
-    if(!playing) return;
-    countdown--;
-    if(qs('secondsLeft')) qs('secondsLeft').innerText = countdown;
-    if(countdown <= 0){
-      clearInterval(countdownInterval);
-      if(!rewarded){ rewardUser(); nextVideo(); }
-    }
-  },1000);
-}
+    // consent
+    safeAdd('consentBtn','click', ()=> { hideModal('menuModal'); showModal('consentModal'); });
+    safeAdd('consentClose','click', ()=> hideModal('consentModal'));
+    safeAdd('agreeBtn','click', async ()=> {
+      try{ await updateDoc(doc(db,'users',user.uid), { consent: true }); toast('Consent saved'); hideModal('consentModal'); }catch(e){ toast('Consent failed'); }
+    });
 
-/* ---------- Reward user (one time per video) ---------- */
-async function rewardUser(){
-  try{
-    const v = videos[idx] || {};
-    const coins = Number(v.coins || 0);
-    const ref = doc(db,'users',user.uid);
-    const snap = await getDoc(ref);
-    let bal = snap.exists() ? (snap.data().balance || 0) : 0;
-    bal = Number(bal) + coins;
-    await updateDoc(ref, { balance: bal });
-    if(qs('balAmt')) qs('balAmt').innerText = bal;
-    rewarded = true;
-    toast('+' + coins + ' coins added');
-  }catch(e){ console.error('rewardUser', e); toast('Reward failed'); }
-}
+    // refer modal open
+    safeAdd('referBtn','click', async ()=> {
+      hideModal('menuModal');
+      try{
+        const snap = await getDoc(doc(db,'users',user.uid));
+        let code = user.uid.slice(0,4);
+        if(snap.exists()){
+          const d = snap.data();
+          if(d.username) code = String(d.username).slice(0,4);
+          else if(d.refCode) code = d.refCode;
+        }
+        if(qs('showRef')) qs('showRef').innerText = code;
+        showModal('referModal');
+      }catch(e){ console.error(e); toast('Could not load ref'); }
+    });
+    safeAdd('refCancel','click', ()=> hideModal('referModal'));
+    safeAdd('shareRefSmall','click', ()=> {
+      const code = qs('showRef')?.innerText || '';
+      if(!code) return toast('No ref code'); window.open('https://wa.me/?text=' + encodeURIComponent('Join Watch & Earn using my code: ' + code), '_blank');
+    });
 
-/* ---------- Next video, skip ---------- */
-function nextVideo(){
-  try{ if(ytPlayer && ytPlayer.stopVideo) ytPlayer.stopVideo(); }catch(e){}
-  clearInterval(countdownInterval);
-  playing = false; rewarded = false;
-  idx = (idx + 1) % videos.length;
-  setTimeout(loadCurrent, 500);
-}
+    // redeem in modal
+    safeAdd('refSend','click', async ()=> {
+      const code = qs('inputRef')?.value?.trim(); if(!code) return toast('Enter code'); 
+      try{
+        const all = await getDocs(collection(db,'users'));
+        let targetId = null; let targetData = null;
+        all.forEach(d => { if(d.data().refCode === code) { targetId = d.id; targetData = d.data(); }});
+        if(!targetId) return toast('Invalid code');
+        const me = await getDoc(doc(db,'users',user.uid));
+        if(me.exists() && me.data().referredBy) return toast('Already redeemed');
+        await updateDoc(doc(db,'users',user.uid), { referredBy: code });
+        await updateDoc(doc(db,'users',targetId), { balance: (targetData.balance||0) + 100 });
+        toast('Referral applied; referrer +₦100'); hideModal('referModal');
+      }catch(e){ console.error(e); toast('Redeem failed'); }
+    });
 
-/* Expose skip (in case in old code referenced globally) */
-window.nextVideo = nextVideo;
+    // redeem from top card
+    safeAdd('redeemBtn','click', async ()=> {
+      const code = qs('redeemCode')?.value?.trim(); if(!code) return toast('Enter code');
+      try{
+        const all = await getDocs(collection(db,'users'));
+        let targetId = null;
+        all.forEach(d => { if(d.data().refCode === code) targetId = d.id; });
+        if(!targetId) return toast('Invalid code');
+        const me = await getDoc(doc(db,'users',user.uid));
+        if(me.exists() && me.data().referredBy) return toast('Already redeemed');
+        await updateDoc(doc(db,'users',user.uid), { referredBy: code });
+        const tSnap = await getDoc(doc(db,'users',targetId));
+        await updateDoc(doc(db,'users',targetId), { balance: (tSnap.data().balance||0) + 100 });
+        toast('Referral redeemed');
+      }catch(e){ console.error(e); toast('Redeem failed'); }
+    });
 
-/* end module */
-</script>
+    // share top
+    safeAdd('shareRef','click', ()=> {
+      const code = qs('myRef')?.innerText || '';
+      if(!code) return toast('No ref code');
+      window.open('https://wa.me/?text=' + encodeURIComponent('Join Watch & Earn using my referral code: ' + code), '_blank');
+    });
+  } // end attachMenuHandlers
 
-<!-- Single YouTube API include (leave exactly one of these) -->
-<script async src="https://www.youtube.com/iframe_api"></script>
+  </script>
+
+  <!-- YouTube API single include (must appear once) -->
+  <script async src="https://www.youtube.com/iframe_api"></script>
+</body>
+</html>
