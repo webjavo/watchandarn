@@ -356,7 +356,7 @@ safeAdd('referBtn','click', async ()=> {
     safeAdd('refCancel','click', ()=> hideModal('referModal'));
     safeAdd('shareRefSmall','click', ()=> {
       const code = qs('showRef')?.innerText || '';
-      if(!code) return toast('No ref code'); window.open('https://wa.me/?text=' + encodeURIComponent('https://webjavo.github.io/watchandarn/index.html Join Watch & Earn using my code: ' + code), '_blank');
+      if(!code) return toast('No ref code'); window.open('https://wa.me/?text=' + encodeURIComponent(' https://webjavo.github.io/watchandarn/index.html Join Watch & Earn using my code: ' + code), '_blank');
     });
 
     // redeem in modal
@@ -435,7 +435,7 @@ safeAdd('redeemBtn', 'click', async () => {
     safeAdd('shareRef','click', ()=> {
       const code = qs('myRef')?.innerText || '';
       if(!code) return toast('No ref code');
-      window.open('https://wa.me/?text=' + encodeURIComponent('https://webjavo.github.io/watchandarn/index.html Join Watch & Earn using my referral code: ' + code), '_blank');
+      window.open('https://wa.me/?text=' + encodeURIComponent(' https://webjavo.github.io/watchandarn/index.html Join Watch & Earn using my referral code: ' + code), '_blank');
     });
   } // end attachMenuHandlers
 
