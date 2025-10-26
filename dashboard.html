@@ -360,37 +360,76 @@ safeAdd('referBtn','click', async ()=> {
     });
 
     // redeem in modal
-    safeAdd('refSend','click', async ()=> {
-      const code = qs('inputRef')?.value?.trim(); if(!code) return toast('Enter code'); 
-      try{
-        const all = await getDocs(collection(db,'users'));
-        let targetId = null; let targetData = null;
-        all.forEach(d => { if(d.data().refCode === code) { targetId = d.id; targetData = d.data(); }});
-        if(!targetId) return toast('Invalid code');
-        const me = await getDoc(doc(db,'users',user.uid));
-        if(me.exists() && me.data().referredBy) return toast('Already redeemed');
-        await updateDoc(doc(db,'users',user.uid), { referredBy: code });
-        await updateDoc(doc(db,'users',targetId), { balance: (targetData.balance||0) + 100 });
-        toast('Referral applied; referrer +₦100'); hideModal('referModal');
-      }catch(e){ console.error(e); toast('Redeem failed'); }
+// --- Redeem in modal ---
+safeAdd('refSend', 'click', async () => {
+  const code = qs('inputRef')?.value?.trim();
+  if (!code) return toast('Enter code');
+  try {
+    const all = await getDocs(collection(db, 'users'));
+    let targetId = null, targetData = null;
+
+    all.forEach(d => {
+      if (d.data().refCode === code) {
+        targetId = d.id;
+        targetData = d.data();
+      }
     });
 
-    // redeem from top card
-    safeAdd('redeemBtn','click', async ()=> {
-      const code = qs('redeemCode')?.value?.trim(); if(!code) return toast('Enter code');
-      try{
-        const all = await getDocs(collection(db,'users'));
-        let targetId = null;
-        all.forEach(d => { if(d.data().refCode === code) targetId = d.id; });
-        if(!targetId) return toast('Invalid code');
-        const me = await getDoc(doc(db,'users',user.uid));
-        if(me.exists() && me.data().referredBy) return toast('Already redeemed');
-        await updateDoc(doc(db,'users',user.uid), { referredBy: code });
-        const tSnap = await getDoc(doc(db,'users',targetId));
-        await updateDoc(doc(db,'users',targetId), { balance: (tSnap.data().balance||0) + 100 });
-        toast('Referral redeemed');
-      }catch(e){ console.error(e); toast('Redeem failed'); }
+    if (!targetId) return toast('Invalid code');
+    if (targetId === user.uid) return toast('You cannot use your own code');
+
+    const me = await getDoc(doc(db, 'users', user.uid));
+    if (me.exists() && me.data().referredBy)
+      return toast('Already redeemed');
+
+        // update both users
+    await updateDoc(doc(db, 'users', user.uid), { referredBy: code });
+    await updateDoc(doc(db, 'users', targetId), {
+      balance: (targetData.balance || 0) + 100
     });
+
+    toast('Referral applied! Referrer +₦100');
+    hideModal('referModal');
+  } catch (e) {
+    console.error('Referral redeem failed', e);
+    toast('Redeem failed');
+  }
+});
+
+    // redeem from top card
+    // --- Redeem from top card ---
+safeAdd('redeemBtn', 'click', async () => {
+  const code = qs('redeemCode')?.value?.trim();
+  if (!code) return toast('Enter code');
+  try {
+    const all = await getDocs(collection(db, 'users'));
+    let targetId = null, targetData = null;
+
+    all.forEach(d => {
+      if (d.data().refCode === code) {
+        targetId = d.id;
+        targetData = d.data();
+      }
+    });
+
+    if (!targetId) return toast('Invalid code');
+    if (targetId === user.uid) return toast('You cannot use your own code');
+
+    const me = await getDoc(doc(db, 'users', user.uid));
+    if (me.exists() && me.data().referredBy)
+      return toast('Already redeemed');
+
+    await updateDoc(doc(db, 'users', user.uid), { referredBy: code });
+    await updateDoc(doc(db, 'users', targetId), {
+      balance: (targetData.balance || 0) + 100
+    });
+
+    toast('Referral redeemed! Referrer +₦100');
+  } catch (e) {
+    console.error('Redeem failed', e);
+    toast('Redeem failed');
+  }
+});
 
     // share top
     safeAdd('shareRef','click', ()=> {
