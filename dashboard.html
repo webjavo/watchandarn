@@ -338,8 +338,7 @@
       try{ await updateDoc(doc(db,'users',user.uid), { consent: true }); toast('Consent saved'); hideModal('consentModal'); }catch(e){ toast('Consent failed'); }
     });
 
-    // refer modal open
-    // --- Referral system ---
+// --- Referral system ---
 safeAdd('referBtn','click', async ()=> {
   hideModal('menuModal');
   try {
