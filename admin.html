@@ -1,3 +1,5 @@
+</body>
+</html>
 <!doctype html>
 <html lang="en">
 <head>
@@ -11,13 +13,9 @@
   --accent:#1e6fdb;
   --accent-2:#0b57b5;
   --muted:#48607f;
-  --success:#16a34a;
-  --danger:#ef4444;
 }
-*{box-sizing:border-box}
 body{margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial;background:var(--bg);color:#14303b}
-.container{max-width:720px;margin:0 auto;padding:14px}
-.header{display:flex;justify-content:space-between;align-items:center;padding:8px 0}
+.container{max-width:700px;margin:0 auto;padding:14px}
 .card{background:var(--card);border-radius:12px;padding:12px;box-shadow:0 20px 60px rgba(2,6,23,0.08);margin-top:12px}
 .btn{padding:8px 14px;border-radius:10px;background:linear-gradient(90deg,var(--accent),var(--accent-2));color:#fff;border:none;cursor:pointer;font-weight:700}
 .btn-ghost{background:transparent;border:1px solid rgba(20,48,59,0.06);color:var(--accent-2);padding:8px 12px;border-radius:10px;cursor:pointer}
@@ -25,13 +23,10 @@ body{margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial;background:var(-
 .tab{flex:1;text-align:center;padding:8px;border-radius:8px;cursor:pointer;background:#f0f6ff;color:var(--accent-2);font-weight:600}
 .tab.active{background:var(--accent-2);color:white}
 .table{width:100%;border-collapse:collapse;margin-top:10px}
-.table th,.table td{padding:8px;border-bottom:1px solid rgba(0,0,0,0.05);font-size:13px;text-align:left;vertical-align:middle}
-.thumb{width:120px;height:70px;object-fit:cover;border-radius:6px}
+.table th,.table td{padding:8px;border-bottom:1px solid rgba(0,0,0,0.05);font-size:13px;text-align:left}
+.thumb{width:90px;height:55px;object-fit:cover;border-radius:6px}
 .small-input{padding:8px;border-radius:8px;border:1px solid rgba(11,87,181,0.1);width:100px}
 .input{padding:8px;border-radius:8px;border:1px solid rgba(11,87,181,0.1);width:100%}
-.muted{color:var(--muted)}
-.right{display:flex;gap:8px;align-items:center}
-.top-row{display:flex;justify-content:space-between;align-items:center;gap:10px}
 </style>
 </head>
 <body>
@@ -40,50 +35,36 @@ body{margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial;background:var(-
 
   <!-- LOGIN -->
   <div id="loginPanel" class="card">
-    <h3>Admin Login</h3>
-    <div style="display:flex;gap:8px;flex-wrap:wrap">
-      <input class="input" id="ad_email" placeholder="Admin email (Firebase auth)"/>
-      <input class="input" id="ad_password" placeholder="Password" type="password"/>
-      <input class="small-input" id="ad_user" placeholder="Local admin username (fallback)"/>
-      <input class="small-input" id="ad_pet" placeholder="Pet name (fallback)"/>
-    </div>
-    <div style="display:flex;gap:8px;margin-top:10px">
-      <button class="btn" id="ad_login">Sign in (Firebase)</button>
-      <button class="btn-ghost" id="ad_local">Use local admin (fallback)</button>
-      <button class="btn-ghost" id="ad_cancel">Clear</button>
-    </div>
-    <div style="margin-top:8px" class="muted">Recommended: sign in with Firebase admin email. If not available, use local fallback.</div>
+    <h3>Login</h3>
+    <input class="input" id="ad_user" placeholder="Admin username"/>
+    <input class="input" id="ad_pass" placeholder="Password" type="password"/>
+    <input class="input" id="ad_pet" placeholder="Pet name"/>
+    <button class="btn" id="ad_login">Login</button>
   </div>
 
   <!-- ADMIN AREA -->
   <div id="adminArea" style="display:none">
-    <div class="top-row">
-      <div class="nav-tabs" style="flex:1">
-        <div class="tab active" id="tabVideos">Videos</div>
-        <div class="tab" id="tabUsers">Users</div>
-        <div class="tab" id="tabWithdraw">Withdrawals</div>
-      </div>
-      <div class="right">
-        <div id="adminEmail" class="muted">Not signed in</div>
-        <button class="btn-ghost" id="ad_logout">Logout</button>
-      </div>
+    <div class="nav-tabs">
+      <div class="tab active" id="tabVideos">Videos</div>
+      <div class="tab" id="tabUsers">Users</div>
+      <div class="tab" id="tabWithdraw">Withdrawals</div>
     </div>
 
-    <!-- VIDEOS TAB -->
+    <!-- VIDEOS -->
     <div id="videosTab" class="card">
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;align-items:center">
-        <input class="input" id="vid_url" placeholder="YouTube link (e.g. https://youtu.be/VIDEOID)"/>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+        <input class="input" id="vid_url" placeholder="YouTube link"/>
         <input class="small-input" id="vid_seconds" placeholder="Seconds"/>
         <input class="small-input" id="vid_coins" placeholder="Coins"/>
         <button class="btn" id="vid_add">Add</button>
       </div>
       <table class="table" id="vid_table">
-        <thead><tr><th>Thumbnail</th><th>Seconds</th><th>Coins</th><th>Actions</th></tr></thead>
+        <thead><tr><th>Thumbnail</th><th>Seconds</th><th>Coins</th><th>Action</th></tr></thead>
         <tbody></tbody>
       </table>
     </div>
 
-    <!-- USERS TAB -->
+    <!-- USERS -->
     <div id="usersTab" class="card" style="display:none">
       <table class="table" id="usersTable">
         <thead><tr><th>Email</th><th>Username</th><th>Balance</th><th>Status</th><th>Action</th></tr></thead>
@@ -91,7 +72,7 @@ body{margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial;background:var(-
       </table>
     </div>
 
-    <!-- WITHDRAWALS TAB -->
+    <!-- WITHDRAWALS -->
     <div id="withdrawTab" class="card" style="display:none">
       <table class="table" id="withdrawTable">
         <thead><tr><th>User</th><th>Amount</th><th>Code</th><th>Time</th><th>Action</th></tr></thead>
@@ -101,17 +82,13 @@ body{margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial;background:var(-
   </div>
 </div>
 
-<!-- Firebase + admin logic -->
+<!-- FIREBASE -->
 <script type="module">
-/* ------------- Firebase SDK ------------- */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
-import {
-  getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, onSnapshot, orderBy, query, getDoc
-} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot, orderBy, query, updateDoc } 
+from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
-/* ---------- CONFIG ---------- */
-/* Use your Firebase config below (kept same as other files) */
+// FIREBASE CONFIG
 const firebaseConfig = {
   apiKey: "AIzaSyCzFqbBdIMucN6A7zE6US6aZziyp_3lMB0",
   authDomain: "watchandarn.firebaseapp.com",
@@ -119,275 +96,137 @@ const firebaseConfig = {
   storageBucket: "watchandarn.appspot.com",
   messagingSenderId: "670181055241",
   appId: "1:670181055241:web:974eabbaff1c2cbf28d1d8",
-  measurementId: "G-P1QGG9WV4R"
 };
 const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
 const db = getFirestore(app);
 
-/* ---------- Helpers ---------- */
-const qs = id => document.getElementById(id);
+// HELPERS
+function qs(id){return document.getElementById(id);}
 function toast(msg){
-  const el = document.createElement('div');
-  el.style.position='fixed';el.style.left='50%';el.style.top='16%';
-  el.style.transform='translateX(-50%)';el.style.background='#fff';el.style.padding='10px 14px';
-  el.style.borderRadius='8px';el.style.boxShadow='0 8px 30px rgba(0,0,0,0.12)';el.style.zIndex=9999;
-  el.innerText = msg; document.body.appendChild(el); setTimeout(()=>el.remove(), 1800);
-}
-function safeAdd(id,evt,fn){ const el = qs(id); if(el) el.addEventListener(evt, fn); }
-
-/* ---------- Admin identity (fallback) ---------- */
-const ADMIN_EMAIL = 'vmancompany@gmail.com'; // recommended: admin auth email
-const ADMIN_LOCAL_USER = 'vmanstudios';
-const ADMIN_LOCAL_PWD = '242777Aa#';
-const ADMIN_LOCAL_PET = 'Dragon';
-
-/* ---------- State ---------- */
-let adminUser = null; // firebase user object or 'local' string when using fallback
-let vidsUnsub = null, usersUnsub = null, withdrawsUnsub = null;
-
-/* ---------- UI helpers: show/hide admin area ---------- */
-function showAdmin(userEmail){
-  qs('loginPanel').style.display = 'none';
-  qs('adminArea').style.display = 'block';
-  qs('adminEmail').innerText = userEmail || 'admin';
-}
-function hideAdmin(){
-  qs('loginPanel').style.display = 'block';
-  qs('adminArea').style.display = 'none';
-  qs('adminEmail').innerText = 'Not signed in';
-  // unsubscribe any listeners
-  if(vidsUnsub) vidsUnsub();
-  if(usersUnsub) usersUnsub();
-  if(withdrawsUnsub) withdrawsUnsub();
+  const el=document.createElement('div');
+  el.style.position='fixed';el.style.left='50%';el.style.top='15%';
+  el.style.transform='translateX(-50%)';
+  el.style.background='#fff';el.style.padding='10px 14px';
+  el.style.borderRadius='8px';el.style.boxShadow='0 5px 25px rgba(0,0,0,0.15)';
+  el.innerText=msg;document.body.appendChild(el);
+  setTimeout(()=>el.remove(),2000);
 }
 
-/* ---------- Admin sign-in (Firebase) ---------- */
-safeAdd('ad_login','click', async ()=>{
-  const email = qs('ad_email').value.trim();
-  const pw = qs('ad_password').value;
-  if(!email || !pw){ toast('Enter email & password'); return; }
-  try{
-    const cred = await signInWithEmailAndPassword(auth, email, pw);
-    adminUser = cred.user;
-    showAdmin(adminUser.email);
-    // start live listeners
-    initAllListeners();
-  }catch(err){
-    console.error('Firebase sign-in failed', err);
-    toast('Firebase sign-in failed: ' + (err.message || ''));
-  }
-});
+// LOGIN
+const ADMIN_USER='vmanstudios', ADMIN_PASS='242777Aa#', ADMIN_PET='Dragon';
+qs('ad_login').onclick=()=>{
+  const u=qs('ad_user').value.trim();
+  const p=qs('ad_pass').value.trim();
+  const pet=qs('ad_pet').value.trim();
+  if(u===ADMIN_USER && p===ADMIN_PASS && pet===ADMIN_PET){
+    qs('loginPanel').style.display='none';
+    qs('adminArea').style.display='block';
+    loadVideos();
+    loadUsers();
+    loadWithdrawals();
+  } else toast('Invalid admin login');
+};
 
-/* ---------- Local fallback admin (keeps old flow if firebase email not configured) ---------- */
-safeAdd('ad_local','click', ()=>{
-  const u = qs('ad_user').value.trim();
-  const pet = qs('ad_pet').value.trim();
-  const p = qs('ad_password').value;
-  // check either (username+pet) or (username+password) fallback
-  if((u === ADMIN_LOCAL_USER && pet === ADMIN_LOCAL_PET) || (u === ADMIN_LOCAL_USER && p === ADMIN_LOCAL_PWD)){
-    adminUser = 'local';
-    showAdmin('local-admin');
-    initAllListeners();
-  } else {
-    toast('Local admin credentials wrong');
-  }
-});
-
-/* ---------- Logout ---------- */
-safeAdd('ad_logout','click', async ()=>{
-  try{
-    if(adminUser === 'local'){ adminUser = null; hideAdmin(); return; }
-    await signOut(auth);
-    adminUser = null;
-    hideAdmin();
-    toast('Logged out');
-  }catch(e){
-    console.error('logout', e); toast('Logout failed');
-  }
-});
-
-/* ---------- Clear login fields ---------- */
-safeAdd('ad_cancel','click', ()=> {
-  qs('ad_email').value=''; qs('ad_password').value=''; qs('ad_user').value=''; qs('ad_pet').value='';
-});
-
-/* ---------- Tab navigation ---------- */
+// TAB SWITCH
 const tabs = {
-  videos: {tab: qs('tabVideos'), section: qs('videosTab')},
-  users: {tab: qs('tabUsers'), section: qs('usersTab')},
-  withdraw: {tab: qs('tabWithdraw'), section: qs('withdrawTab')}
+  videos:{tab:qs('tabVideos'), section:qs('videosTab')},
+  users:{tab:qs('tabUsers'), section:qs('usersTab')},
+  withdraw:{tab:qs('tabWithdraw'), section:qs('withdrawTab')}
 };
-Object.keys(tabs).forEach(name=>{
-  tabs[name].tab.addEventListener('click', ()=>{
-    Object.values(tabs).forEach(t=>{
-      t.tab.classList.remove('active');
-      t.section.style.display='none';
+for(let k in tabs){
+  tabs[k].tab.onclick=()=>{
+    for(let j in tabs){tabs[j].tab.classList.remove('active');tabs[j].section.style.display='none';}
+    tabs[k].tab.classList.add('active');
+    tabs[k].section.style.display='block';
+  };
+}
+
+// EXTRACT YOUTUBE ID
+function extractID(url){const m=url.match(/(?:youtu\.be\/|v=)([\w-]+)/);return m?m[1]:'';}
+
+// VIDEOS
+const vidCol=collection(db,'videos');
+qs('vid_add').onclick=async()=>{
+  const url=qs('vid_url').value.trim();
+  const secs=Number(qs('vid_seconds').value.trim());
+  const coins=Number(qs('vid_coins').value.trim());
+  if(!url||!secs||!coins) return toast('Fill all fields');
+  await addDoc(vidCol,{url,seconds:secs,coins,createdAt:Date.now()});
+  toast('Video added');
+  qs('vid_url').value='';qs('vid_seconds').value='';qs('vid_coins').value='';
+};
+function loadVideos(){
+  const qv=query(vidCol,orderBy('createdAt','desc'));
+  onSnapshot(qv,(snap)=>{
+    const tbody=qs('vid_table').querySelector('tbody');
+    tbody.innerHTML='';
+    if(snap.empty){tbody.innerHTML='<tr><td colspan="4">No videos</td></tr>';return;}
+    snap.forEach(docSnap=>{
+      const v=docSnap.data();
+      const thumb=`https://img.youtube.com/vi/${extractID(v.url)}/0.jpg`;
+      const tr=document.createElement('tr');
+      tr.innerHTML=`
+        <td><img class="thumb" src="${thumb}"/></td>
+        <td>${v.seconds}s</td>
+        <td>₦${v.coins}</td>
+        <td><button class="btn-ghost" onclick="deleteVideo('${docSnap.id}')">Delete</button></td>`;
+      tbody.appendChild(tr);
     });
-    tabs[name].tab.classList.add('active');
-    tabs[name].section.style.display='block';
   });
-});
-
-/* ---------- Video management (real-time) ---------- */
-const vidCol = collection(db,'videos');
-
-safeAdd('vid_add','click', async ()=>{
-  const url = qs('vid_url').value.trim();
-  const secs = Number(qs('vid_seconds').value.trim());
-  const coins = Number(qs('vid_coins').value.trim());
-  if(!url || !secs || isNaN(coins)){ toast('Fill all fields'); return; }
-  try{
-    await addDoc(vidCol, { url, seconds: secs, coins: coins, createdAt: Date.now() });
-    toast('Video added');
-    qs('vid_url').value=''; qs('vid_seconds').value=''; qs('vid_coins').value='';
-  }catch(e){ console.error('addDoc video', e); toast('Failed to add video'); }
-});
-
-function extractID(url){
-  if(!url) return '';
-  const m = String(url).match(/(?:v=|youtu\.be\/|\/)([0-9A-Za-z_-]{11})/);
-  return m ? m[1] : '';
 }
+window.deleteVideo=async(id)=>{
+  await deleteDoc(doc(db,'videos',id));
+  toast('Video deleted');
+};
 
-function initVideosListener(){
-  // listen to whole collection and handle missing createdAt gracefully
-  const qv = query(vidCol);
-  vidsUnsub = onSnapshot(qv, async (snap)=>{
-    const tbody = qs('vid_table').querySelector('tbody'); tbody.innerHTML='';
-    if(!snap || snap.empty){ tbody.innerHTML = '<tr><td colspan="4">No videos</td></tr>'; return; }
-    // gather docs then sort by createdAt desc (fallback: use server time)
-    const docs = [];
-    snap.forEach(s=>{
-      const d = s.data(); docs.push({ id: s.id, data: d });
-    });
-    // ensure createdAt exists (set if missing)
-    for(const item of docs){
-      if(!item.data.createdAt){
-        try{ await updateDoc(doc(db,'videos',item.id), { createdAt: Date.now() }); item.data.createdAt = Date.now(); }
-        catch(e){ /* ignore */ }
-      }
-    }
-    docs.sort((a,b)=> (b.data.createdAt||0) - (a.data.createdAt||0));
-    docs.forEach(item=>{
-      const v = item.data; const id = item.id;
-      const thumb = v.url ? `https://img.youtube.com/vi/${extractID(v.url)}/0.jpg` : '';
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td><img class="thumb" src="${thumb}" alt="thumb"></td>
-        <td>${v.seconds ?? '-' }s</td>
-        <td>₦${v.coins ?? 0}</td>
-        <td>
-          <button class="btn-ghost" onclick="deleteVideo('${id}')">Delete</button>
-          <button class="btn-ghost" onclick="moveVideoToTop('${id}')">Move to Top</button>
-        </td>`;
+// USERS
+function loadUsers(){
+  onSnapshot(collection(db,'users'),(snap)=>{
+    const tbody=qs('usersTable').querySelector('tbody');
+    tbody.innerHTML='';
+    if(snap.empty){tbody.innerHTML='<tr><td colspan="5">No users</td></tr>';return;}
+    snap.forEach(d=>{
+      const u=d.data();
+      const tr=document.createElement('tr');
+      tr.innerHTML=`
+        <td>${u.email||'-'}</td>
+        <td>${u.username||'-'}</td>
+        <td>₦${u.balance||0}</td>
+        <td>${u.disabled?'Disabled':'Active'}</td>
+        <td><button class="btn-ghost" onclick="toggleUser('${d.id}',${!u.disabled})">Toggle</button></td>`;
       tbody.appendChild(tr);
     });
-  }, (err)=>{ console.error('vid onSnapshot', err); toast('Video listener error'); });
+  });
 }
-
-window.deleteVideo = async (id) => {
-  if(!confirm('Delete this video?')) return;
-  try{ await deleteDoc(doc(db,'videos',id)); toast('Video deleted'); }
-  catch(e){ console.error('deleteVideo', e); toast('Delete failed'); }
+window.toggleUser=async(id,state)=>{
+  await updateDoc(doc(db,'users',id),{disabled:state});
+  toast('User updated');
 };
 
-window.moveVideoToTop = async (id) => {
-  try{ await updateDoc(doc(db,'videos',id), { createdAt: Date.now() }); toast('Moved to top'); }
-  catch(e){ console.error('moveVideoToTop', e); toast('Move failed'); }
-};
-
-/* ---------- Users management (real-time) ---------- */
-function initUsersListener(){
-  const usersCol = collection(db,'users');
-  usersUnsub = onSnapshot(usersCol, (snap)=>{
-    const tbody = qs('usersTable').querySelector('tbody'); tbody.innerHTML='';
-    if(!snap || snap.empty){ tbody.innerHTML = '<tr><td colspan="5">No users</td></tr>'; return; }
-    snap.forEach(s=>{
-      const u = s.data(); const id = s.id;
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${u.email || '-'}</td>
-        <td>${u.username || '-'}</td>
-        <td>₦${Number(u.balance || 0).toFixed(0)}</td>
-        <td>${u.disabled ? 'Disabled' : 'Active'}</td>
-        <td>
-          <button class="btn-ghost" onclick="toggleDisable('${id}', ${!u.disabled})">${u.disabled ? 'Enable' : 'Disable'}</button>
-          <button class="btn-ghost" onclick="deleteUser('${id}')">Delete</button>
-        </td>`;
+// WITHDRAWALS
+function loadWithdrawals(){
+  const qw=query(collection(db,'withdrawals'),orderBy('time','desc'));
+  onSnapshot(qw,(snap)=>{
+    const tbody=qs('withdrawTable').querySelector('tbody');
+    tbody.innerHTML='';
+    if(snap.empty){tbody.innerHTML='<tr><td colspan="5">No withdrawals</td></tr>';return;}
+    snap.forEach(d=>{
+      const w=d.data();
+      const tr=document.createElement('tr');
+      tr.innerHTML=`
+        <td>${w.username||'-'}</td>
+        <td>₦${w.amount||0}</td>
+        <td>${w.code||'-'}</td>
+        <td>${new Date(w.time||Date.now()).toLocaleString()}</td>
+        <td><button class="btn-ghost" onclick="deleteWithdraw('${d.id}')">Delete</button></td>`;
       tbody.appendChild(tr);
     });
-  }, (err)=>{ console.error('users onSnapshot', err); toast('User listener error'); });
+  });
 }
-
-window.toggleDisable = async (uid, disable) => {
-  if(!confirm(disable ? 'Disable this user?' : 'Enable this user?')) return;
-  try{
-    await updateDoc(doc(db,'users',uid), { disabled: disable });
-    toast('User updated');
-  }catch(e){ console.error('toggleDisable', e); toast('Update failed'); }
+window.deleteWithdraw=async(id)=>{
+  await deleteDoc(doc(db,'withdrawals',id));
+  toast('Withdraw deleted');
 };
-
-window.deleteUser = async (uid) => {
-  if(!confirm('Permanently delete this user?')) return;
-  try{
-    await deleteDoc(doc(db,'users',uid));
-    toast('User deleted');
-  }catch(e){ console.error('deleteUser', e); toast('Delete failed'); }
-};
-
-/* ---------- Withdrawals (real-time) ---------- */
-function initWithdrawsListener(){
-  const withdrawCol = collection(db,'withdrawals');
-  const qw = query(withdrawCol, orderBy('time','desc'));
-  withdrawsUnsub = onSnapshot(qw, (snap)=>{
-    const tbody = qs('withdrawTable').querySelector('tbody'); tbody.innerHTML='';
-    if(!snap || snap.empty){ tbody.innerHTML = '<tr><td colspan="5">No withdrawals</td></tr>'; return; }
-    snap.forEach(s=>{
-      const w = s.data(); const id = s.id;
-      const d = new Date(w.time || Date.now()).toLocaleString();
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${w.username || w.userEmail || '-'}</td>
-        <td>₦${w.amount || 0}</td>
-        <td>${w.code || '-'}</td>
-        <td>${d}</td>
-        <td><button class="btn-ghost" onclick="deleteWithdraw('${id}')">Delete</button></td>`;
-      tbody.appendChild(tr);
-    });
-  }, (err)=>{ console.error('withdraw onSnapshot', err); toast('Withdraw listener error'); });
-}
-
-window.deleteWithdraw = async (id) => {
-  if(!confirm('Delete this withdrawal?')) return;
-  try{ await deleteDoc(doc(db,'withdrawals',id)); toast('Withdraw deleted'); }
-  catch(e){ console.error('deleteWithdraw', e); toast('Delete failed'); }
-};
-
-/* ---------- Initialize all listeners (call after admin sign-in) ---------- */
-function initAllListeners(){
-  // make sure we don't double-subscribe
-  if(vidsUnsub) vidsUnsub();
-  if(usersUnsub) usersUnsub();
-  if(withdrawsUnsub) withdrawsUnsub();
-
-  initVideosListener();
-  initUsersListener();
-  initWithdrawsListener();
-}
-
-/* ---------- Auto sign-in check: if a Firebase user already signed in, use them ---------- */
-import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
-onAuthStateChanged(auth, user => {
-  if(user){
-    adminUser = user;
-    showAdmin(user.email);
-    initAllListeners();
-  } else {
-    // no persistent signin
-  }
-});
-
 </script>
 </body>
 </html>
