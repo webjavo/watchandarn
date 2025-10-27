@@ -17,22 +17,23 @@
 *{box-sizing:border-box}
 body{margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial;background:var(--bg);color:#14303b}
 .container{max-width:480px;margin:0 auto;padding:14px}
-.header{display:flex;justify-content:space-between;align-items:center;padding:8px 0}
 .card{background:var(--card);border-radius:12px;padding:12px;box-shadow:0 20px 60px rgba(2,6,23,0.08);margin-top:12px}
 .btn{padding:8px 14px;border-radius:10px;background:linear-gradient(90deg,var(--accent),var(--accent-2));color:#fff;border:none;cursor:pointer;font-weight:700}
-.btn-ghost{background:transparent;border:1px solid rgba(20,48,59,0.06);color:var(--accent-2);padding:8px 12px;border-radius:10px;cursor:pointer}
+.btn-ghost{background:transparent;border:1px solid rgba(20,48,59,0.1);color:var(--accent-2);padding:6px 10px;border-radius:8px;cursor:pointer}
 .nav-tabs{display:flex;gap:6px;margin-top:10px}
 .tab{flex:1;text-align:center;padding:8px;border-radius:8px;cursor:pointer;background:#f0f6ff;color:var(--accent-2);font-weight:600}
 .tab.active{background:var(--accent-2);color:white}
 .table{width:100%;border-collapse:collapse;margin-top:10px}
 .table th,.table td{padding:8px;border-bottom:1px solid rgba(0,0,0,0.05);font-size:13px;text-align:left}
 .thumb{width:60px;height:40px;object-fit:cover;border-radius:6px}
-.small-input{padding:8px;border-radius:8px;border:1px solid rgba(11,87,181,0.1);width:100px}
+.small-input{padding:8px;border-radius:8px;border:1px solid rgba(11,87,181,0.2);width:100px}
 </style>
 </head>
 <body>
 <div class="container">
   <h2 style="color:var(--accent-2)">Admin Panel</h2>
+
+  <!-- LOGIN -->
   <div id="loginPanel" class="card">
     <h3>Login</h3>
     <input class="small-input" id="ad_user" placeholder="Admin username"/>
@@ -40,10 +41,10 @@ body{margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial;background:var(-
     <input class="small-input" id="ad_pet" placeholder="Pet name"/>
     <div style="display:flex;gap:8px;margin-top:10px">
       <button class="btn" id="ad_login">Login</button>
-      <button class="btn-ghost" id="ad_cancel">Cancel</button>
     </div>
   </div>
 
+  <!-- ADMIN AREA -->
   <div id="adminArea" style="display:none">
     <div class="nav-tabs">
       <div class="tab active" id="tabVideos">Videos</div>
@@ -60,7 +61,7 @@ body{margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial;background:var(-
         <button class="btn" id="vid_add">Add</button>
       </div>
       <table class="table" id="vid_table">
-        <thead><tr><th>Thumbnail</th><th>Seconds</th><th>Coins</th><th>Actions</th></tr></thead>
+        <thead><tr><th>Thumbnail</th><th>Seconds</th><th>Coins</th><th>Action</th></tr></thead>
         <tbody></tbody>
       </table>
     </div>
@@ -68,7 +69,7 @@ body{margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial;background:var(-
     <!-- USERS TAB -->
     <div id="usersTab" class="card" style="display:none">
       <table class="table" id="usersTable">
-        <thead><tr><th>Email</th><th>Username</th><th>Balance</th><th>Status</th><th>Action</th></tr></thead>
+        <thead><tr><th>Email</th><th>Username</th><th>Balance</th><th>Status</th><th>Actions</th></tr></thead>
         <tbody></tbody>
       </table>
     </div>
@@ -83,13 +84,9 @@ body{margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial;background:var(-
   </div>
 </div>
 
-<!-- Firebase -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
-import {
-  getFirestore, collection, addDoc, getDocs, deleteDoc,
-  doc, updateDoc, onSnapshot, orderBy, query
-} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, onSnapshot, orderBy, query } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
 // --- FIREBASE INIT ---
 const firebaseConfig = {
@@ -104,7 +101,6 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// --- HELPERS ---
 function qs(id){return document.getElementById(id);}
 function toast(msg){
   const el=document.createElement('div');
@@ -137,127 +133,84 @@ qs('ad_login').addEventListener('click', ()=>{
   }else toast('Invalid admin login');
 });
 
-// --- TAB SWITCHING ---
-const tabs = {
-  videos: {tab: qs('tabVideos'), section: qs('videosTab')},
-  users: {tab: qs('tabUsers'), section: qs('usersTab')},
-  withdraw: {tab: qs('tabWithdraw'), section: qs('withdrawTab')}
-};
-Object.keys(tabs).forEach(name=>{
-  tabs[name].tab.addEventListener('click', ()=>{
-    Object.values(tabs).forEach(t=>{
-      t.tab.classList.remove('active');
-      t.section.style.display='none';
-    });
-    tabs[name].tab.classList.add('active');
-    tabs[name].section.style.display='block';
+// --- TAB SWITCH ---
+const tabs={videos:{tab:qs('tabVideos'),sec:qs('videosTab')},users:{tab:qs('tabUsers'),sec:qs('usersTab')},withdraw:{tab:qs('tabWithdraw'),sec:qs('withdrawTab')}};
+Object.keys(tabs).forEach(k=>{
+  tabs[k].tab.addEventListener('click',()=>{
+    Object.values(tabs).forEach(t=>{t.tab.classList.remove('active');t.sec.style.display='none';});
+    tabs[k].tab.classList.add('active');
+    tabs[k].sec.style.display='block';
   });
 });
 
-// --- VIDEO MANAGEMENT ---
-const vidCol = collection(db,'videos');
-
-qs('vid_add').addEventListener('click', async ()=>{
-  const url = qs('vid_url').value.trim();
-  const secs = Number(qs('vid_seconds').value.trim());
-  const coins = Number(qs('vid_coins').value.trim());
-  if(!url || !secs || !coins){ toast('Fill all fields'); return; }
+// --- VIDEOS ---
+const vidCol=collection(db,'videos');
+qs('vid_add').addEventListener('click',async()=>{
+  const url=qs('vid_url').value.trim(),secs=Number(qs('vid_seconds').value.trim()),coins=Number(qs('vid_coins').value.trim());
+  if(!url||!secs||!coins)return toast('Fill all fields');
   try{
-    await addDoc(vidCol, { url, seconds:secs, coins, createdAt: Date.now() });
-    toast('Video added successfully');
-    qs('vid_url').value=''; qs('vid_seconds').value=''; qs('vid_coins').value='';
-  }catch(e){
-    console.error(e); toast('Failed to add video');
-  }
+    await addDoc(vidCol,{url,seconds:secs,coins,createdAt:Date.now()});
+    toast('Video added');
+    qs('vid_url').value='';qs('vid_seconds').value='';qs('vid_coins').value='';
+  }catch(e){toast('Add failed');}
 });
-
-function extractID(url){
-  const match = url.match(/(?:youtu\.be\/|v=)([\w-]+)/);
-  return match ? match[1] : '';
-}
-
+function extractID(url){const m=url.match(/(?:youtu\.be\/|v=)([\w-]+)/);return m?m[1]:'';}
 function loadVideos(){
-  const qv = query(vidCol, orderBy('createdAt','desc'));
-  onSnapshot(qv,(snap)=>{
-    const tbody = qs('vid_table').querySelector('tbody');
-    tbody.innerHTML='';
-    if(snap.empty){tbody.innerHTML='<tr><td colspan="4">No videos</td></tr>';return;}
-    snap.forEach(docSnap=>{
-      const v = docSnap.data();
-      const tr=document.createElement('tr');
+  onSnapshot(query(vidCol,orderBy('createdAt','desc')),(snap)=>{
+    const tb=qs('vid_table').querySelector('tbody');tb.innerHTML='';
+    if(snap.empty)return tb.innerHTML='<tr><td colspan="4">No videos</td></tr>';
+    snap.forEach(d=>{
+      const v=d.data();const id=d.id;
       const thumb=`https://img.youtube.com/vi/${extractID(v.url)}/0.jpg`;
-      tr.innerHTML=`
-        <td><img class="thumb" src="${thumb}" alt="thumb"></td>
-        <td>${v.seconds}s</td>
-        <td>₦${v.coins}</td>
-        <td><button class="btn-ghost" onclick="deleteVideo('${docSnap.id}')">Delete</button></td>`;
-      tbody.appendChild(tr);
+      tb.innerHTML+=`<tr><td><img class="thumb" src="${thumb}"></td><td>${v.seconds}s</td><td>₦${v.coins}</td><td><button class='btn-ghost' onclick='deleteVideo("${id}")'>Delete</button></td></tr>`;
     });
   });
 }
+window.deleteVideo=async(id)=>{try{await deleteDoc(doc(db,'videos',id));toast('Video deleted');}catch(e){toast('Delete failed');}};
 
-window.deleteVideo = async (id)=>{
-  try{ await deleteDoc(doc(db,'videos',id)); toast('Video deleted'); }
-  catch(e){ toast('Delete failed'); }
-};
-
-// --- USER MANAGEMENT ---
-async function loadUsers(){
-  const tbody = qs('usersTable').querySelector('tbody');
-  tbody.innerHTML='<tr><td colspan="5">Loading...</td></tr>';
-  try{
-    const qSnap=await getDocs(collection(db,'users'));
-    tbody.innerHTML='';
-    if(qSnap.empty){tbody.innerHTML='<tr><td colspan="5">No users</td></tr>';return;}
-    qSnap.forEach(docSnap=>{
-      const u=docSnap.data();
-      const tr=document.createElement('tr');
-      tr.innerHTML=`
+// --- USERS ---
+function loadUsers(){
+  onSnapshot(collection(db,'users'),(snap)=>{
+    const tb=qs('usersTable').querySelector('tbody');tb.innerHTML='';
+    if(snap.empty)return tb.innerHTML='<tr><td colspan="5">No users</td></tr>';
+    snap.forEach(d=>{
+      const u=d.data(),id=d.id;
+      tb.innerHTML+=`
+      <tr>
         <td>${u.email||'-'}</td>
         <td>${u.username||'-'}</td>
         <td>₦${(u.balance||0).toFixed(0)}</td>
-        <td>${u.disabled?'Disabled':'Active'}</td>
-        <td><button class="btn-ghost" onclick="toggleDisable('${docSnap.id}',${!u.disabled})">Toggle</button></td>`;
-      tbody.appendChild(tr);
+        <td style="color:${u.disabled?'red':'green'}">${u.disabled?'Disabled':'Active'}</td>
+        <td>
+          <button class="btn-ghost" onclick='toggleUser("${id}",${!u.disabled})'>${u.disabled?'Enable':'Disable'}</button>
+          <button class="btn-ghost" style="color:var(--danger)" onclick='removeUser("${id}")'>Remove</button>
+        </td>
+      </tr>`;
     });
-  }catch(e){toast('Failed to load users');console.error(e);}
+  });
 }
+window.toggleUser=async(id,state)=>{try{await updateDoc(doc(db,'users',id),{disabled:state});toast(state?'User disabled':'User enabled');}catch(e){toast('Failed');}};
+window.removeUser=async(id)=>{try{await deleteDoc(doc(db,'users',id));toast('User removed');}catch(e){toast('Delete failed');}};
 
-window.toggleDisable = async (uid,disable)=>{
-  try{
-    const ref=doc(db,'users',uid);
-    await updateDoc(ref,{disabled:disable});
-    toast('User updated');
-    loadUsers();
-  }catch(e){toast('Error updating user');}
-};
-
-// --- WITHDRAWAL MANAGEMENT ---
+// --- WITHDRAWALS ---
 function loadWithdrawals(){
-  const qw=query(collection(db,'withdrawals'),orderBy('time','desc'));
-  onSnapshot(qw,(snap)=>{
-    const tbody=qs('withdrawTable').querySelector('tbody');
-    tbody.innerHTML='';
-    if(snap.empty){tbody.innerHTML='<tr><td colspan="5">No withdrawals</td></tr>';return;}
-    snap.forEach(docSnap=>{
-      const w=docSnap.data();
-      const tr=document.createElement('tr');
-      const t=new Date(w.time).toLocaleString();
-      tr.innerHTML=`
+  onSnapshot(query(collection(db,'withdrawals'),orderBy('time','desc')),(snap)=>{
+    const tb=qs('withdrawTable').querySelector('tbody');tb.innerHTML='';
+    if(snap.empty)return tb.innerHTML='<tr><td colspan="5">No withdrawals</td></tr>';
+    snap.forEach(d=>{
+      const w=d.data(),t=new Date(w.time).toLocaleString();
+      tb.innerHTML+=`
+      <tr>
         <td>${w.username||w.userEmail||'-'}</td>
         <td>₦${w.amount||0}</td>
         <td>${w.code||'-'}</td>
         <td>${t}</td>
-        <td><button class="btn-ghost" onclick="deleteWithdraw('${docSnap.id}')">Delete</button></td>`;
-      tbody.appendChild(tr);
+        <td><button class="btn-ghost" onclick='deleteWithdraw("${d.id}")'>Delete</button></td>
+      </tr>`;
     });
   });
 }
-
-window.deleteWithdraw = async (id)=>{
-  try{
-    await deleteDoc(doc(db,'withdrawals',id));
-    toast('Withdrawal deleted');
-  }catch(e){toast('Delete failed');}
-};
+window.deleteWithdraw=async(id)=>{try{await deleteDoc(doc(db,'withdrawals',id));toast('Withdrawal deleted');}catch(e){toast('Delete failed');}};
 </script>
+</body>
+</html>
