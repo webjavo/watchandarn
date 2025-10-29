@@ -87,129 +87,180 @@ body{margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial;background:var(-
 <!-- Firebase -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, onSnapshot, orderBy, query } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+import {
+  getFirestore, collection, addDoc, getDocs, deleteDoc,
+  doc, updateDoc, onSnapshot, orderBy, query
+} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
+// --- FIREBASE INIT ---
 const firebaseConfig = {
   apiKey: "AIzaSyCzFqbBdIMucN6A7zE6US6aZziyp_3lMB0",
   authDomain: "watchandarn.firebaseapp.com",
   projectId: "watchandarn",
-  storageBucket: "watchandarn.firebasestorage.app",
+  storageBucket: "watchandarn.appspot.com",
   messagingSenderId: "670181055241",
   appId: "1:670181055241:web:974eabbaff1c2cbf28d1d8",
   measurementId: "G-P1QGG9WV4R"
 };
-
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+// --- HELPERS ---
 function qs(id){return document.getElementById(id);}
-function alertProfessional(msg){
+function toast(msg){
   const el=document.createElement('div');
-  el.style.position='fixed';el.style.left='50%';el.style.top='15%';
-  el.style.transform='translateX(-50%)';el.style.zIndex=9999;
-  el.style.background='linear-gradient(90deg,#fff7f9,#fff)';
-  el.style.padding='12px 18px';el.style.borderRadius='10px';
-  el.style.boxShadow='0 10px 30px rgba(0,0,0,0.08)';
-  el.innerText=msg;document.body.appendChild(el);
+  el.style.position='fixed';
+  el.style.left='50%';
+  el.style.top='18%';
+  el.style.transform='translateX(-50%)';
+  el.style.background='white';
+  el.style.padding='10px 16px';
+  el.style.borderRadius='10px';
+  el.style.boxShadow='0 10px 30px rgba(0,0,0,0.1)';
+  el.style.zIndex='9999';
+  el.innerText=msg;
+  document.body.appendChild(el);
   setTimeout(()=>el.remove(),2200);
 }
 
-/* ---- ADMIN LOGIN ---- */
-const ADMIN_USER='vmancompany@gmail.com', ADMIN_PASS='242777Aa#', ADMIN_PET='Dragon';
-qs('ad_login').addEventListener('click',()=>{
-  const u=qs('ad_user').value.trim(),p=qs('ad_pass').value,pet=qs('ad_pet').value.trim();
+// --- ADMIN LOGIN ---
+const ADMIN_USER='vmanstudios', ADMIN_PASS='242777Aa#', ADMIN_PET='Dragon';
+qs('ad_login').addEventListener('click', ()=>{
+  const u=qs('ad_user').value.trim();
+  const p=qs('ad_pass').value.trim();
+  const pet=qs('ad_pet').value.trim();
   if(u===ADMIN_USER && p===ADMIN_PASS && pet===ADMIN_PET){
     qs('loginPanel').style.display='none';
     qs('adminArea').style.display='block';
-    loadVideos(); loadUsers(); loadWithdrawals();
-  }else alertProfessional('Incorrect credentials');
+    loadVideos();
+    loadUsers();
+    loadWithdrawals();
+  }else toast('Invalid admin login');
 });
 
-/* ---- TAB SWITCH ---- */
-const tabs={tabVideos:'videosTab',tabUsers:'usersTab',tabWithdraw:'withdrawTab'};
-Object.keys(tabs).forEach(id=>{
-  qs(id).addEventListener('click',()=>{
-    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-    document.getElementById(id).classList.add('active');
-    Object.values(tabs).forEach(v=>qs(v).style.display='none');
-    qs(tabs[id]).style.display='block';
+// --- TAB SWITCHING ---
+const tabs = {
+  videos: {tab: qs('tabVideos'), section: qs('videosTab')},
+  users: {tab: qs('tabUsers'), section: qs('usersTab')},
+  withdraw: {tab: qs('tabWithdraw'), section: qs('withdrawTab')}
+};
+Object.keys(tabs).forEach(name=>{
+  tabs[name].tab.addEventListener('click', ()=>{
+    Object.values(tabs).forEach(t=>{
+      t.tab.classList.remove('active');
+      t.section.style.display='none';
+    });
+    tabs[name].tab.classList.add('active');
+    tabs[name].section.style.display='block';
   });
 });
 
-/* ---- LOAD VIDEOS ---- */
-async function loadVideos(){
-  const tbody=qs('vid_table').querySelector('tbody');
-  tbody.innerHTML='';
-  const q=query(collection(db,'videos'));
-  const snap=await getDocs(q);
-  snap.forEach(docu=>{
-    const v=docu.data();
-    const id=docu.id;
-    const vidId=extractYouTubeId(v.url);
-    const thumb=`https://img.youtube.com/vi/${vidId}/0.jpg`;
-    const tr=document.createElement('tr');
-    tr.innerHTML=`
-      <td><img src="${thumb}" class="thumb"></td>
-      <td>${v.seconds}</td>
-      <td>${v.coins}</td>
-      <td>
-        <button class='btn-ghost' onclick='removeVideo("${id}")'>Remove</button>
-      </td>`;
-    tbody.appendChild(tr);
+// --- VIDEO MANAGEMENT ---
+const vidCol = collection(db,'videos');
+
+qs('vid_add').addEventListener('click', async ()=>{
+  const url = qs('vid_url').value.trim();
+  const secs = Number(qs('vid_seconds').value.trim());
+  const coins = Number(qs('vid_coins').value.trim());
+  if(!url || !secs || !coins){ toast('Fill all fields'); return; }
+  try{
+    await addDoc(vidCol, { url, seconds:secs, coins, createdAt: Date.now() });
+    toast('Video added successfully');
+    qs('vid_url').value=''; qs('vid_seconds').value=''; qs('vid_coins').value='';
+  }catch(e){
+    console.error(e); toast('Failed to add video');
+  }
+});
+
+function extractID(url){
+  const match = url.match(/(?:youtu\.be\/|v=)([\w-]+)/);
+  return match ? match[1] : '';
+}
+
+function loadVideos(){
+  const qv = query(vidCol, orderBy('createdAt','desc'));
+  onSnapshot(qv,(snap)=>{
+    const tbody = qs('vid_table').querySelector('tbody');
+    tbody.innerHTML='';
+    if(snap.empty){tbody.innerHTML='<tr><td colspan="4">No videos</td></tr>';return;}
+    snap.forEach(docSnap=>{
+      const v = docSnap.data();
+      const tr=document.createElement('tr');
+      const thumb=`https://img.youtube.com/vi/${extractID(v.url)}/0.jpg`;
+      tr.innerHTML=`
+        <td><img class="thumb" src="${thumb}" alt="thumb"></td>
+        <td>${v.seconds}s</td>
+        <td>₦${v.coins}</td>
+        <td><button class="btn-ghost" onclick="deleteVideo('${docSnap.id}')">Delete</button></td>`;
+      tbody.appendChild(tr);
+    });
   });
 }
-async function removeVideo(id){
-  await deleteDoc(doc(db,'videos',id));
-  alertProfessional('Video removed'); loadVideos();
-}
-qs('vid_add').addEventListener('click',async()=>{
-  const url=qs('vid_url').value.trim();
-  const seconds=Number(qs('vid_seconds').value||0);
-  const coins=Number(qs('vid_coins').value||0);
-  if(!url||seconds<=0||coins<=0){alertProfessional('Invalid');return;}
-  await addDoc(collection(db,'videos'),{url,seconds,coins});
-  alertProfessional('Video added'); qs('vid_url').value='';qs('vid_seconds').value='';qs('vid_coins').value='';
-  loadVideos();
-});
-function extractYouTubeId(url){const m=url.match(/(?:v=|\/)([0-9A-Za-z_-]{11})/);return m?m[1]:'';}
 
-/* ---- USERS ---- */
+window.deleteVideo = async (id)=>{
+  try{ await deleteDoc(doc(db,'videos',id)); toast('Video deleted'); }
+  catch(e){ toast('Delete failed'); }
+};
+
+// --- USER MANAGEMENT ---
 async function loadUsers(){
-  const tbody=qs('usersTable').querySelector('tbody'); tbody.innerHTML='';
-  const q=query(collection(db,'users'));
-  const snap=await getDocs(q);
-  snap.forEach(d=>{
-    const u=d.data(); const id=d.id;
-    const tr=document.createElement('tr');
-    tr.innerHTML=`<td>${u.email}</td><td>${u.username}</td><td>₦${u.balance||0}</td>
-    <td>${u.disabled?'Disabled':'Active'}</td>
-    <td><button class='btn-ghost' onclick='toggleUser("${id}",${!u.disabled})'>Toggle</button></td>`;
-    tbody.appendChild(tr);
-  });
-}
-async function toggleUser(id,val){
-  await updateDoc(doc(db,'users',id),{disabled:val});
-  alertProfessional('User updated'); loadUsers();
+  const tbody = qs('usersTable').querySelector('tbody');
+  tbody.innerHTML='<tr><td colspan="5">Loading...</td></tr>';
+  try{
+    const qSnap=await getDocs(collection(db,'users'));
+    tbody.innerHTML='';
+    if(qSnap.empty){tbody.innerHTML='<tr><td colspan="5">No users</td></tr>';return;}
+    qSnap.forEach(docSnap=>{
+      const u=docSnap.data();
+      const tr=document.createElement('tr');
+      tr.innerHTML=`
+        <td>${u.email||'-'}</td>
+        <td>${u.username||'-'}</td>
+        <td>₦${(u.balance||0).toFixed(0)}</td>
+        <td>${u.disabled?'Disabled':'Active'}</td>
+        <td><button class="btn-ghost" onclick="toggleDisable('${docSnap.id}',${!u.disabled})">Toggle</button></td>`;
+      tbody.appendChild(tr);
+    });
+  }catch(e){toast('Failed to load users');console.error(e);}
 }
 
-/* ---- WITHDRAWALS ---- */
-async function loadWithdrawals(){
-  const tbody=qs('withdrawTable').querySelector('tbody'); tbody.innerHTML='';
-  const q=query(collection(db,'withdrawals'),orderBy('time','desc'));
-  const snap=await getDocs(q);
-  snap.forEach(d=>{
-    const w=d.data(),id=d.id;
-    const tr=document.createElement('tr');
-    tr.innerHTML=`<td>${w.email}</td><td>₦${w.amount}</td><td>${w.code}</td><td>${new Date(w.time).toLocaleString()}</td>
-    <td>
-      <button class='btn' onclick='markPaid("${id}")'>Paid</button>
-      <button class='btn-ghost' onclick='deleteWithdraw("${id}")'>Delete</button>
-    </td>`;
-    tbody.appendChild(tr);
+window.toggleDisable = async (uid,disable)=>{
+  try{
+    const ref=doc(db,'users',uid);
+    await updateDoc(ref,{disabled:disable});
+    toast('User updated');
+    loadUsers();
+  }catch(e){toast('Error updating user');}
+};
+
+// --- WITHDRAWAL MANAGEMENT ---
+function loadWithdrawals(){
+  const qw=query(collection(db,'withdrawals'),orderBy('time','desc'));
+  onSnapshot(qw,(snap)=>{
+    const tbody=qs('withdrawTable').querySelector('tbody');
+    tbody.innerHTML='';
+    if(snap.empty){tbody.innerHTML='<tr><td colspan="5">No withdrawals</td></tr>';return;}
+    snap.forEach(docSnap=>{
+      const w=docSnap.data();
+      const tr=document.createElement('tr');
+      const t=new Date(w.time).toLocaleString();
+      tr.innerHTML=`
+        <td>${w.username||w.userEmail||'-'}</td>
+        <td>₦${w.amount||0}</td>
+        <td>${w.code||'-'}</td>
+        <td>${t}</td>
+        <td><button class="btn-ghost" onclick="deleteWithdraw('${docSnap.id}')">Delete</button></td>`;
+      tbody.appendChild(tr);
+    });
   });
 }
-async function markPaid(id){ await updateDoc(doc(db,'withdrawals',id),{status:'paid'}); alertProfessional('Marked as paid'); loadWithdrawals(); }
-async function deleteWithdraw(id){ await deleteDoc(doc(db,'withdrawals',id)); alertProfessional('Deleted'); loadWithdrawals(); }
+
+window.deleteWithdraw = async (id)=>{
+  try{
+    await deleteDoc(doc(db,'withdrawals',id));
+    toast('Withdrawal deleted');
+  }catch(e){toast('Delete failed');}
+};
 </script>
 </body>
 </html>
