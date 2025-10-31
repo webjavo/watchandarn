@@ -21,8 +21,6 @@ body{margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial;background:var(-
 .input{width:100%;padding:10px;border-radius:10px;border:1px solid rgba(11,87,181,0.08);margin-top:8px;font-size:14px}
 .muted{color:var(--muted);font-size:14px}
 .note{font-size:13px;color:var(--muted);margin-top:10px}
-.modal-backdrop{display:none;position:fixed;inset:0;background:rgba(2,6,23,0.45);align-items:center;justify-content:center;z-index:2000}
-.modal{width:92%;max-width:420px;background:#fff;border-radius:12px;padding:16px;box-shadow:0 20px 60px rgba(2,6,23,0.08)}
 </style>
 </head>
 <body>
@@ -39,19 +37,14 @@ body{margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial;background:var(-
   </div>
 </div>
 
-<div class="modal-backdrop" id="succModal">
-  <div class="modal">
-    <h3>Success</h3>
-    <div class="muted" id="succText"></div>
-    <div style="text-align:right;margin-top:10px"><button class="btn" id="succOk">OK</button></div>
-  </div>
-</div>
-
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
-import { getFirestore, collection, addDoc, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+import { 
+  getFirestore, collection, addDoc, doc, getDoc, updateDoc, onSnapshot 
+} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
+// --- FIREBASE INIT ---
 const firebaseConfig = {
   apiKey: "AIzaSyCzFqbBdIMucN6A7zE6US6aZziyp_3lMB0",
   authDomain: "watchandarn.firebaseapp.com",
@@ -61,75 +54,90 @@ const firebaseConfig = {
   appId: "1:670181055241:web:974eabbaff1c2cbf28d1d8",
   measurementId: "G-P1QGG9WV4R"
 };
-
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
 const qs = id => document.getElementById(id);
 let user = null;
-let userDoc = null;
+let userDocRef = null;
+let userData = null;
 
-onAuthStateChanged(auth, async (u) => {
-  if(!u){ location.href = 'index.html'; return; }
+// --- AUTH STATE ---
+onAuthStateChanged(auth, async (u)=>{
+  if(!u){ location.href='index.html'; return; }
   user = u;
-  const ref = doc(db,'users', user.uid);
-  const snap = await getDoc(ref);
-  userDoc = snap.exists() ? snap.data() : null;
-  qs('avail').innerText = (userDoc?.balance || 0).toFixed(0);
+  userDocRef = doc(db, 'users', user.uid);
+  
+  // listen live for balance updates
+  onSnapshot(userDocRef, snap=>{
+    if(snap.exists()){
+      userData = snap.data();
+      qs('avail').innerText = (userData.balance || 0).toFixed(0);
+    }
+  });
 });
 
-qs('cancelBtn').addEventListener('click', ()=> location.href = 'dashboard.html');
+// --- CANCEL BUTTON ---
+qs('cancelBtn').addEventListener('click', ()=> location.href='dashboard.html');
 
-qs('sendBtn').addEventListener('click', async () => {
-  const amt = Number(qs('amount').value || 0);
-  if(isNaN(amt) || amt < 5000){ alertProfessional('Minimum withdrawal is ₦5000'); return; }
-  if(amt > 10000){ alertProfessional('Maximum ₦10000 per request'); return; }
-  if(!userDoc || (userDoc.balance || 0) < amt){ alertProfessional('Insufficient balance'); return; }
+// --- SEND BUTTON ---
+qs('sendBtn').addEventListener('click', async ()=>{
+  const btn = qs('sendBtn');
+  btn.disabled = true;
+  const amt = Number(qs('amount').value.trim());
+  if(isNaN(amt) || amt < 5000){ return toast('Minimum ₦5000'); }
+  if(amt > 10000){ return toast('Maximum ₦10000'); }
+  if(!userData || (userData.balance || 0) < amt){ return toast('Insufficient balance'); }
 
-  // generate code (example)
-  const codes = ["WE-hero1001#","WE-hero1002@","WE-hero1003$","WE-hero1004%"];
-  const code = codes[Math.floor(Math.random() * codes.length)];
+  const code = 'WE-' + Math.random().toString(36).substring(2,6).toUpperCase();
 
   try{
-    // deduct balance in Firestore
-    const userRef = doc(db,'users', user.uid);
-    await updateDoc(userRef, { balance: (userDoc.balance || 0) - amt });
-    // add withdrawal document
-    await addDoc(collection(db,'withdrawals'), {
+    // deduct user balance
+    await updateDoc(userDocRef, { balance: (userData.balance || 0) - amt });
+
+    // create withdrawal record
+    await addDoc(collection(db, 'withdrawals'), {
       userEmail: user.email,
-      username: userDoc?.username || '',
+      username: userData?.username || '-',
       amount: amt,
       code,
       time: Date.now()
     });
-    // update local UI
-    userDoc.balance = (userDoc.balance || 0) - amt;
-    qs('avail').innerText = userDoc.balance.toFixed(0);
-    // open WhatsApp
-    const msg = encodeURIComponent(`I withdrew ₦${amt} using code ${code}`);
-    window.open('https://wa.me/2347031935351?text=' + msg, '_blank');
-    alertProfessional('Withdrawal request sent!');
+
+    // WhatsApp alert
+    const msg = encodeURIComponent(`Hi Admin, I withdrew ₦${amt} using code: ${code}`);
+    window.open(`https://wa.me/2347031935351?text=${msg}`, '_blank');
+
+    toast('Withdrawal successful!');
+    qs('amount').value = '';
   }catch(e){
     console.error(e);
-    alertProfessional('Failed to submit withdrawal');
+    toast('Withdrawal failed, try again');
+  }finally{
+    btn.disabled = false;
   }
 });
 
-function alertProfessional(msg){
+// --- Toast Message ---
+function toast(msg){
   const el = document.createElement('div');
-  el.style.position='fixed'; el.style.left='50%'; el.style.top='18%';
-  el.style.transform='translateX(-50%)'; el.style.background='linear-gradient(90deg,#fff7f9,#fff)';
-  el.style.padding='12px 18px'; el.style.borderRadius='10px'; el.style.zIndex=9999;
-  el.innerText = msg; document.body.appendChild(el);
-  setTimeout(()=>el.remove(),2200);
-}
-</script>
-
-  el.style.boxShadow='0 10px 30px rgba(0,0,0,0.08)';
-  el.style.zIndex=9999;
+  el.style.position='fixed';
+  el.style.left='50%';
+  el.style.top='18%';
+  el.style.transform='translateX(-50%)';
+  el.style.background='white';
+  el.style.padding='10px 16px';
+  el.style.borderRadius='10px';
+  el.style.boxShadow='0 10px 30px rgba(0,0,0,0.1)';
+  el.style.zIndex='9999';
   el.innerText=msg;
   document.body.appendChild(el);
   setTimeout(()=>el.remove(),2200);
+}
+</script>
+</body>
+</html>
+0);
 }
 </script>
